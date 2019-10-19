@@ -22,8 +22,13 @@ class Bullet {
 		this.pos.y += Math.sin(this.angle) * this.speed * deltaTime;
 		for(let i = this.targets.length-1; i >= 0; i--){
 				if( this.distance( this.targets[i] ) < this.targets[i].size+this.size ){
-					this.targets[i].isDead = true;
-					this.targets.splice(i, 1)
+					this.targets[i].speed.x += Math.cos(this.angle) * 0.1;
+					this.targets[i].speed.y += Math.sin(this.angle) * 0.1;
+					this.targets[i].health -= 1;
+					if( this.targets[i].health < 1 ){
+						this.targets[i].isDead = true;
+						this.targets.splice(i, 1)
+					}
 					this.isGone = true;
 					break;
 				}

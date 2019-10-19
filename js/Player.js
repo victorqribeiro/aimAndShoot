@@ -5,6 +5,7 @@ class Player {
 			x: x || w2,
 			y: y || h2
 		};
+		this.health = 10;
 		this.angle = angle || 0;
 		this.ia = ia;
 		this.size = 30;
@@ -26,6 +27,7 @@ class Player {
 		};
 		this.friction = 0.97;
 		this.isDead = false;
+		this.coolDown = 10;
 	}
 
 	lookAt(x, y){
@@ -56,14 +58,19 @@ class Player {
 
 		if( this.pos.x + _x > 0 && this.pos.x + _x < w )	
 			this.pos.x += _x;
+		else
+			this.speed.x = -this.speed.x
 			
 		if( this.pos.y + _y > 0 && this.pos.y + _y < h )	
 			this.pos.y += _y;
+		else
+			this.speed.y = -this.speed.y
 			
 		this.speed.x *= this.friction;
 		this.speed.y *= this.friction;
 		
-		if( this.isShooting ){
+		if( this.isShooting && this.coolDown < 1){
+			this.coolDown = 5;
 			this.isShooting = false;
 			const targets = players.slice( 0 );
 			targets.splice( targets.indexOf(this), 1)
@@ -71,6 +78,8 @@ class Player {
 				new Bullet( this.pos.x + Math.cos(this.angle) * 40, this.pos.y + Math.sin(this.angle) * 40, 5, this.angle, 1.2, targets) 
 			);
 		}
+		
+		this.coolDown--
 
 	}
 	
@@ -94,6 +103,10 @@ class Player {
 	}
 	
 	show(c){
+		c.fillStyle = "red";
+		c.fillRect(this.pos.x - 50, this.pos.y - 60, this.health * 10 , 10);
+		c.strokeRect(this.pos.x - 50, this.pos.y - 60, 100, 10);
+		c.fillStyle = "black";
 		c.beginPath();
 		c.arc(this.pos.x, this.pos.y, this.size, 0, TWOPI);
 		c.fill();
