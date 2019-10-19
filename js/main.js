@@ -1,4 +1,4 @@
-let canvas, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover;
+let artwork, canvas, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, isStarting = true;
 
 const init = function(){
 
@@ -46,7 +46,16 @@ const init = function(){
 
 	players = [player, ...enemies];
 	
-	update();
+	if( isStarting ){
+	
+		startScreen();
+		
+	}else{
+	
+		update();
+		
+	}
+	
 }
 
 
@@ -80,17 +89,25 @@ const update = function(){
 	
 	draw();
 	
-	if( player.isDead )
+	if( player.isDead ){
 	
-		return gameover()
+		gameover()
 		
-	if( players.length == 1 )
+		return
+		
+	}
+		
+	if( players.length == 1 ){
 	
-		return endRound()
+		endRound()
+		
+		return 
+		
+	}
 		
 	prevTime = nextTime;
 	
-	requestAnimationFrame( update );
+	u = requestAnimationFrame( update );
 	
 }
 
@@ -121,8 +138,23 @@ const endRound = function(){
 	
 }
 
+const startScreen = function(){
+
+	c.clearRect(0,0,w,h);
+	
+	c.drawImage( artwork, 0, 0 );
+	
+	c.fillColor = "black";
+	
+	c.fillText("Click to Start", w-w2/2, h2 )
+	
+}
 
 const gameover = function(){
+
+	if(u)
+	
+		cancelAnimationFrame(u)
 
 	let i = 0;
 	
@@ -198,9 +230,6 @@ document.body.addEventListener('keydown', e => {
 });
 
 
-init();
-
-
 document.body.addEventListener('keyup', e => {
 
 	e.preventDefault();
@@ -247,13 +276,46 @@ document.body.addEventListener('mousedown', e => {
 
 	e.preventDefault();
 	
-	player.isShooting = true;
-	
-	if( isGameover )
+	if( isGameover ){
 	
 		init();
 		
+		return;
+		
+	}
+		
+	if( isStarting ){
+	
+		isStarting = false;
+		
+		update();
+		
+		return;
+		
+	}
+	
+	player.isShooting = true;
+		
 });
 
+window.onresize = _ => {
 
-window.onresize = _ => init();
+	if(u)
+	
+		cancelAnimationFrame(u)
+		
+	isStarting = true;
+	
+	init();
+	
+}
+
+artwork = new Image();
+
+artwork.src = "artwork.png";
+
+artwork.onload = _ => {
+
+	init();
+	
+}

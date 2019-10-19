@@ -126,25 +126,57 @@ class Player {
 		
 		const _y = this.speed.y * deltaTime;
 
-		if( this.pos.x + _x > 0 && this.pos.x + _x < w )	
+		if( this.pos.x + _x > this.size && this.pos.x + _x < w - this.size )	
 		
 			this.pos.x += _x;
 			
-		else
+		else{
 		
-			this.speed.x = -this.speed.x
+			this.speed.x = -this.speed.x;
 			
-		if( this.pos.y + _y > 0 && this.pos.y + _y < h )	
+			this.health -= 1;
+			
+		}
+			
+		if( this.pos.y + _y > this.size && this.pos.y + _y < h - this.size )	
 		
 			this.pos.y += _y;
 			
-		else
+		else{
 		
 			this.speed.y = -this.speed.y
 			
+			this.health -= 1;
+			
+		}
+		
 		this.speed.x *= this.friction;
 		
 		this.speed.y *= this.friction;
+		
+		for(let i = 0; i < players.length; i++){
+		
+			if( players[i] == this )
+			
+				continue
+			
+			if( this.distance( players[i] ) <= players[i].size + this.size ) {
+				
+				players[i].speed.x += (this.speed.x);
+				
+				players[i].speed.y += (this.speed.y);
+				
+				this.speed.x += -players[i].speed.x;
+				
+				this.speed.y += -players[i].speed.y;
+				
+				this.speed.x *= 0.005;
+				
+				this.speed.y *= 0.005;
+			
+			}
+			
+		}
 		
 		if( this.isShooting && this.coolDown > 0 && this.spread < 1 ){
 		
@@ -174,6 +206,11 @@ class Player {
 
 	}
 
+	distance(target){
+		
+		return Math.sqrt( (this.pos.x - target.pos.x)**2 + (this.pos.y - target.pos.y)**2 );
+		
+	}
 	
 	updateIA(target){
 	
