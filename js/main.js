@@ -99,15 +99,15 @@ const draw = function(){
 
 	c.clearRect(0, 0, w, h);
 	
-	for(let i = 0; i < players.length; i++){
-	
-		players[i].show();
-		
-	}
-	
 	for(let i = 0; i < bullets.length; i++){
 	
 		bullets[i].show();
+		
+	}
+	
+	for(let i = 0; i < players.length; i++){
+	
+		players[i].show();
 		
 	}
 	
@@ -234,6 +234,14 @@ document.body.addEventListener('keyup', e => {
 	
 });
 
+
+document.body.addEventListener('mouseup', e => {
+
+	e.preventDefault();
+	
+	player.isShooting = false;
+		
+});
 
 document.body.addEventListener('mousedown', e => {
 

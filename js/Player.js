@@ -1,6 +1,6 @@
 class Player {
 
-	constructor(x, y, angle, ia = false){
+	constructor(x, y, angle, color, ia = false){
 	
 		this.pos = {
 		
@@ -15,6 +15,8 @@ class Player {
 		this.angle = angle || 0;
 		
 		this.ia = ia;
+		
+		this.color = color || [0,0,0];
 		
 		this.size = 30;
 		
@@ -54,9 +56,13 @@ class Player {
 		
 		this.isDead = false;
 		
-		this.coolDownInit = 15;
+		this.coolDownInit = 20;
 		
 		this.coolDown = this.coolDownInit;
+		
+		this.spreadInit = 5;
+		
+		this.spread = this.spreadInit;
 		
 		this.iAnim = 0;
 		
@@ -140,11 +146,11 @@ class Player {
 		
 		this.speed.y *= this.friction;
 		
-		if( this.isShooting && this.coolDown < 1){
+		if( this.isShooting && this.coolDown > 0 && this.spread < 1 ){
 		
-			this.coolDown = this.coolDownInit;
-			
-			this.isShooting = false;
+			this.spread = this.spreadInit;
+				
+			this.coolDown -= 1
 			
 			const targets = players.slice( 0 );
 			
@@ -160,7 +166,11 @@ class Player {
 			
 		}
 		
-		this.coolDown--;
+		if( this.coolDown < this.coolDownInit && !this.isShooting )
+		
+			this.coolDown += 1;
+		
+		this.spread -= 1;
 
 	}
 
@@ -188,13 +198,33 @@ class Player {
 	}
 
 	
+	showHealthBar(){
+	
+		c.fillStyle = "red";
+		
+		c.fillRect(this.pos.x - 50, this.pos.y - 60, this.health * 10 , 10);
+		
+		c.strokeRect(this.pos.x - 50, this.pos.y - 60, 100, 10);
+		
+	}
+
+	showCooldownBar(){
+	
+		c.fillStyle = "green";
+		
+		c.fillRect(this.pos.x - 50, this.pos.y - 45, this.coolDown / this.coolDownInit * 100 , 10);
+		
+		c.strokeRect(this.pos.x - 50, this.pos.y - 45, 100, 10);
+		
+	}
+	
 	show(){
 	
 		if( this.isDead ){
 		
 			this.iAnim += 0.1
 			
-			c.fillStyle = "rgba(0,0,0,"+(1-this.iAnim)+")";
+			c.fillStyle = "rgba("+this.color[0]+","+this.color[1]+","+this.color[2]+","+(1-this.iAnim)+")";
 			
 			c.beginPath();
 			
@@ -216,19 +246,15 @@ class Player {
 			
 		}
 		
-		c.fillStyle = "red";
+		this.showHealthBar();
 		
-		c.fillRect(this.pos.x - 50, this.pos.y - 60, this.health * 10 , 10);
+		this.showCooldownBar();
 		
-		c.strokeRect(this.pos.x - 50, this.pos.y - 60, 100, 10);
+		c.fillStyle = "rgb("+this.color[0]+","+this.color[1]+","+this.color[2]+")";
 		
-		c.fillStyle = "black";
+		c.shadowColor = "black";
 		
-		c.beginPath();
-		
-		c.arc(this.pos.x, this.pos.y, this.size, 0, TWOPI);
-		
-		c.fill();
+		c.shadowBlur = 5;
 		
 		c.save();
 		
@@ -239,6 +265,14 @@ class Player {
 		c.fillRect(0, -9, 50, 18);
 		
 		c.restore();
+		
+		c.beginPath();
+		
+		c.arc(this.pos.x, this.pos.y, this.size, 0, TWOPI);
+		
+		c.fill();
+		
+		c.shadowBlur = 0;
 		
 	}
 

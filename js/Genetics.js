@@ -20,8 +20,12 @@ class Genetics {
 		this.population = [];
 		
 		for(let i = 0; i < 3; i++){
+			
+			const r = Math.floor( Math.random() * 256 ),
+						g = Math.floor( Math.random() * 256 ),
+						b = Math.floor( Math.random() * 256 );
 		
-			const enemy = new Player(Math.random() * w, Math.random() * h, Math.random() * TWOPI, true);
+			const enemy = new Player(Math.random() * w, Math.random() * h, Math.random() * TWOPI, [r,g,b], true);
 			
 			enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
 			
