@@ -19,7 +19,7 @@ class Genetics {
 	
 		this.population = [];
 		
-		for(let i = 0; i < 3; i++){
+		while(this.population.length < 3){
 			
 			const r = Math.floor( Math.random() * 256 ),
 						g = Math.floor( Math.random() * 256 ),
@@ -27,22 +27,46 @@ class Genetics {
 			
 			let _x, _y;
 			
-			/* refactor this, can't spawn a player over another player */
 			do{
 			
-				_x = Math.floor(Math.random() * w);
+				_x = Math.floor(Math.random() * (w-60))+30;
 				
-				_y = Math.floor(Math.random() * h);
+				_y = Math.floor(Math.random() * (h-60))+30;
 				
-			}while( Math.sqrt( (_x - w2)**2 + (_y - h2)**2 ) < this.size ** 2);
+			}while( Math.sqrt( (_x - w2)**2 + (_y - h2)**2 ) < 60);
+			
+			if( this.population.length < 1 ){
+			
+				const enemy = new Player(_x, _y, Math.random() * TWOPI, [r,g,b], true);
+				
+				enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
+			
+				this.population.push( enemy );
+				
+			}else{
+			
+				for(let i = 0; i < this.population.length; i++){
+					
+					const target = this.population[i];
+					
+					if( Math.sqrt( (_x - target.pos.x)**2 + (_y - target.pos.y)**2 ) > 60 ){
+					
+						const enemy = new Player(_x, _y, Math.random() * TWOPI, [r,g,b], true);
+				
+						enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
+			
+						this.population.push( enemy );
 						
-			const enemy = new Player(_x, _y, Math.random() * TWOPI, [r,g,b], true);
-			
-			enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
-			
-			this.population.push( enemy );
+						break;	
+					
+					}
+					
+				}
+				
+			}
 			
 		}
+		
 		
 	}
 
