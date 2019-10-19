@@ -28,6 +28,7 @@ class Player {
 		this.friction = 0.97;
 		this.isDead = false;
 		this.coolDown = 10;
+		this.iAnim = 0;
 	}
 
 	lookAt(x, y){
@@ -102,7 +103,20 @@ class Player {
 		
 	}
 	
-	show(c){
+	show(){
+		if( this.isDead ){
+			this.iAnim += 0.1
+			c.fillStyle = "rgba(0,0,0,"+(1-this.iAnim)+")";
+			c.beginPath();
+			c.arc(this.pos.x, this.pos.y, this.size, 0, TWOPI);
+			c.fill();
+			c.save();
+			c.translate(this.pos.x, this.pos.y);
+			c.rotate(this.angle+this.iAnim);
+			c.fillRect(this.iAnim*50, -9, 50, 18);
+			c.restore();
+			return
+		}
 		c.fillStyle = "red";
 		c.fillRect(this.pos.x - 50, this.pos.y - 60, this.health * 10 , 10);
 		c.strokeRect(this.pos.x - 50, this.pos.y - 60, 100, 10);

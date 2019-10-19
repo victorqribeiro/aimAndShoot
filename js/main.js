@@ -51,7 +51,7 @@ const update = function(){
 	}
 	for(let i = players.length-1; i >= 0 ; i--){
 		players[i].update(player);
-		if( players[i].isDead )
+		if( players[i].isDead && players[i].iAnim >= 1 )
 			players.splice(i, 1)
 	}
 	draw();
@@ -82,10 +82,10 @@ const gameover = function(){
 const draw = function(){
 	c.clearRect(0, 0, w, h);
 	for(let i = 0; i < players.length; i++){
-		players[i].show(c);
+		players[i].show();
 	}
 	for(let i = 0; i < bullets.length; i++){
-		bullets[i].show(c);
+		bullets[i].show();
 	}
 }
 

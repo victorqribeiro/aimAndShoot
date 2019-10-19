@@ -39,7 +39,8 @@ class Bullet {
 		return Math.abs(this.pos.x - target.pos.x) + Math.abs(this.pos.y - target.pos.y)
 	}
 	
-	show(c){
+	show(){
+		c.fillStyle = "black";
 		c.beginPath()
 		c.arc(this.pos.x, this.pos.y, this.size, 0, TWOPI);
 		c.fill();
