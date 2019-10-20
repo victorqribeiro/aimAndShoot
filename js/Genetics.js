@@ -111,6 +111,8 @@ class Genetics {
 			
 		}
 		
+		return null
+		
 	}
 
 
@@ -137,7 +139,13 @@ class Genetics {
 		
 		for(let i = 0; i < color.length; i++){
 		
-			color[i] = (a.color[i] + b.color[i]) / 2;
+			if( Math.random() < 0.5 )
+		
+				color[i] = (a.color[i] + b.color[i]) / 2;
+				
+			else
+			
+				color[i] = Math.random() < 0.5 ? a.color[i] : b.color[i];
 			
 		}
 	
