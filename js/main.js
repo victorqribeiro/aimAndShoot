@@ -1,8 +1,8 @@
-let artwork, canvas, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, isStarting = true;
+let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, isStarting = true;
 
 const init = function(){
 
-	maxEnemies = 3;
+	maxEnemies = 7;
 
 	isGameover = false;
 
@@ -12,11 +12,15 @@ const init = function(){
 		
 			oldCanvas.remove();
 			
+		else
+		
+			addEventsListener();
+			
 	canvas = document.createElement('canvas');
 	
-	canvas.width = w = innerWidth;
+	canvas.width = w = 1366;
 	
-	canvas.height = h = innerHeight;
+	canvas.height = h = 768;
 	
 	w2 = w/2;
 	
@@ -35,6 +39,12 @@ const init = function(){
 	c.textAlign = "center";
 
 	document.body.appendChild(canvas);
+	
+	rect = canvas.getBoundingClientRect();
+	
+	_x = w/rect.width;
+	
+	_y = h/rect.height;
 
 	genetics = new Genetics();
 	
@@ -152,6 +162,14 @@ const endRound = function(){
 	
 	genetics.evolve();
 	
+	enemies = genetics.population.slice();
+
+	players = [player, ...enemies];
+	
+	startTime = Date.now();
+	
+	update();
+	
 }
 
 const startScreen = function(){
@@ -204,126 +222,129 @@ const gameover = function(){
 	
 }
 
+const addEventsListener = function(){
 
-document.body.addEventListener('mousemove', e => {
+	document.body.addEventListener('mousemove', e => {
 
-	player.lookAt(e.clientX, e.clientY);
+		player.lookAt(e.clientX * _x, e.clientY * _y);
 	
-});
+	});
 
 
-document.body.addEventListener('keydown', e => {
+	document.body.addEventListener('keydown', e => {
 
-	e.preventDefault();
+		e.preventDefault();
 	
-	switch(e.keyCode){
+		switch(e.keyCode){
 	
-		case 65 :
+			case 65 :
 		
-				player.isMoving.left = true;
+					player.isMoving.left = true;
 				
-			break;
+				break;
 			
-		case 87 :
+			case 87 :
 		
-				player.isMoving.up = true;
+					player.isMoving.up = true;
 				
-			break;
+				break;
 			
-		case 68 :
+			case 68 :
 		
-				player.isMoving.right = true;
+					player.isMoving.right = true;
 				
-			break;
+				break;
 			
-		case 83 :
+			case 83 :
 		
-				player.isMoving.down = true;
+					player.isMoving.down = true;
 				
-			break;
-	}
+				break;
+		}
 	
-});
+	});
 
 
-document.body.addEventListener('keyup', e => {
+	document.body.addEventListener('keyup', e => {
 
-	e.preventDefault();
+		e.preventDefault();
 	
-	switch(e.keyCode){
+		switch(e.keyCode){
 	
-		case 65 :
+			case 65 :
 		
-				player.isMoving.left = false;
+					player.isMoving.left = false;
 				
-			break;
+				break;
 			
-		case 87 :
+			case 87 :
 		
-				player.isMoving.up = false;
+					player.isMoving.up = false;
 				
-			break;
+				break;
 			
-		case 68 :
+			case 68 :
 		
-				player.isMoving.right = false;
+					player.isMoving.right = false;
 				
-			break;
+				break;
 			
-		case 83 :
+			case 83 :
 		
-				player.isMoving.down = false;
+					player.isMoving.down = false;
 				
-			break;
-	}
+				break;
+		}
 	
-});
+	});
 
 
-document.body.addEventListener('mouseup', e => {
+	document.body.addEventListener('mouseup', e => {
 
-	e.preventDefault();
+		e.preventDefault();
 	
-	player.isShooting = false;
+		player.isShooting = false;
 		
-});
+	});
 
-document.body.addEventListener('mousedown', e => {
+	document.body.addEventListener('mousedown', e => {
 
-	e.preventDefault();
+		e.preventDefault();
 	
-	if( isGameover ){
+		if( isGameover ){
+	
+			init();
+		
+			return;
+		
+		}
+		
+		if( isStarting ){
+	
+			isStarting = false;
+		
+			update();
+		
+			return;
+		
+		}
+	
+		player.isShooting = true;
+		
+	});
+
+	window.onresize = _ => {
+
+		if(u)
+	
+			cancelAnimationFrame(u)
+		
+		isStarting = true;
 	
 		init();
-		
-		return;
-		
+	
 	}
-		
-	if( isStarting ){
-	
-		isStarting = false;
-		
-		update();
-		
-		return;
-		
-	}
-	
-	player.isShooting = true;
-		
-});
 
-window.onresize = _ => {
-
-	if(u)
-	
-		cancelAnimationFrame(u)
-		
-	isStarting = true;
-	
-	init();
-	
 }
 
 aPlayer = document.createElement('audio');

@@ -78,6 +78,8 @@ class Player {
 		
 		this.selfInjury = 0;
 		
+		this.move = 0;
+		
 	}
 
 
@@ -112,25 +114,47 @@ class Player {
 
 		this.angle = Math.atan2( this.looking.y - this.pos.y, this.looking.x - this.pos.x );
 		
-		if( this.isMoving.left )
+		let moved = false;
+		
+		if( this.isMoving.left ){
 		
 			this.speed.x -= this.velocity;
 			
-		if( this.isMoving.up )
+			moved = true;
+			
+		}
+		
+		if( this.isMoving.up ){
 		
 			this.speed.y -= this.velocity;
 			
-		if( this.isMoving.right )
+			moved = true;
+			
+		}
+			
+		if( this.isMoving.right ){
 		
 			this.speed.x += this.velocity;
 			
-		if( this.isMoving.down )
+			moved = true;
+			
+		}
+			
+		if( this.isMoving.down ){
 		
 			this.speed.y += this.velocity;
+			
+			moved = true;
+			
+		}
 	
 		const _x = this.speed.x * deltaTime;
 		
 		const _y = this.speed.y * deltaTime;
+		
+		if( moved )
+		
+			this.move += 1;
 
 		if( this.pos.x + _x > this.size && this.pos.x + _x < w - this.size )	
 		
@@ -244,17 +268,17 @@ class Player {
 			
 				continue
 			
-			data[i*5+0] = players[i].pos.x / w;
+			data[i*5+0] = players[i].isDead ? 0 : players[i].pos.x / w;
 		
-			data[i*5+1] = players[i].pos.y / h;
+			data[i*5+1] = players[i].isDead ? 0 : players[i].pos.y / h;
 		
-			data[i*5+2] = players[i].looking.x / w;
+			data[i*5+2] = players[i].isDead ? 0 : players[i].looking.x / w;
 		
-			data[i*5+3] = players[i].looking.y / h;
+			data[i*5+3] = players[i].isDead ? 0 : players[i].looking.y / h;
 		
-			data[i*5+4] = players[i].isShooting ? 1 : 0;
+			data[i*5+4] = players[i].isDead ? 0 : players[i].isShooting ? 1 : 0;
 			
-			data[i*5+5] = players[i].ai ? 1 : 0;
+			data[i*5+5] = players[i].isDead ? 0 : players[i].ai ? 1 : 0;
 			
 			i++;
 			
