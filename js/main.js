@@ -6,7 +6,7 @@ const init = function(){
 
 	isGameover = false;
 
-	const oldCanvas = document.querySelector('canvas');
+	const oldCanvas = document.querySelector('#game');
 	
 		if( oldCanvas )
 		
@@ -17,6 +17,8 @@ const init = function(){
 			addEventsListener();
 			
 	canvas = document.createElement('canvas');
+	
+	canvas.id = "game";
 	
 	canvas.width = w = 1366;
 	
@@ -358,6 +360,11 @@ const addEventsListener = function(){
 	}
 
 }
+
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+	const control = new GuiControls();
+}
+
 
 aPlayer = document.createElement('audio');
 

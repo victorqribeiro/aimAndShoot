@@ -216,7 +216,7 @@ class Player {
 		
 		  if(aPlayer.paused)
 		  
-		      aPlayer.play();
+		      aPlayer.play().then( _ => _ ).catch( e => e );
 		      
 		  else
 		  
