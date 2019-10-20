@@ -14,6 +14,16 @@ Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here](
 
 **mouse** - Aims and shoots (click).
 
+### I do not recommend using this on a mobile, but if you must
+
+![controls](controls.png)
+
+The big left circle moves the player.  
+The big right circle aims the player.  
+The two little circles above them, shoot.
+
+You've been warned.
+
 ### Objectives
 
 Kill the bots, don't get killed. Also don't touch the borders of the screen, they hurt you. But, fell free to push the bots into them.

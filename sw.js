@@ -20,9 +20,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(staticCacheName)
     .then(cache => {
-      return cache.addAll(urlsToPrefetch.map(function(filesToCache) {
-				return new Request(filesToCache, { mode: 'no-cors' });
-			}));
+      return cache.addAll(filesToCache);
     })
   );
 });
