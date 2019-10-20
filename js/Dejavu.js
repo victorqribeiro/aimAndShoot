@@ -7,9 +7,13 @@ class Dejavu {
 		for(let i = 0; i < nn.length-1; i++){
 
 			this.layers[i] = {};
+			
 			this.layers[i]['weights'] = new Matrix( nn[i+1], nn[i], "RANDOM" ) ;
+			
 			this.layers[i]['bias'] = new Matrix( nn[i+1], 1, "RANDOM" );
+			
 			this.layers[i]['activation'] = 'tanh';
+			
 			this.layers['length'] += 1;
 			
 		}
@@ -19,21 +23,36 @@ class Dejavu {
 		this.it = iterations;
 		
 		this.activations = {
+		
 			'sigmoid': { 
+			
 				'func': x => 1 / (1 + Math.exp(-x)),
+				
 				'dfunc': x => x * (1 - x)
+				
 			},
+			
 			'relu': {
+			
 				'func': x => x < 0 ? 0 : x,
+				
 				'dfunc': x => x < 0 ? 0 : 1
 			},
+			
 			'tanh': {
+			
 				'func': x => Math.tanh(x),
+				
 				'dfunc': x => 1 - (x * x)
+				
 			},
+			
 			'identity': {
+			
 				'func': x => x,
+				
 				'dfunc': x => 1
+				
 			}
 		};		
 	}
@@ -45,9 +64,13 @@ class Dejavu {
 		for(let i = 0; i < this.layers.length; i++){
 
 			output = this.layers[i]['weights'].multiply( output );
+			
 			this.layers[i]['output'] = output;
+			
 			this.layers[i]['output'].add( this.layers[i]['bias'] );
+			
 			this.layers[i]['output'].foreach( this.activations[ this.layers[i]['activation'] ]['func'] );
+			
 		}
 	
 		return this.layers[this.layers.length-1]['output'];
@@ -75,27 +98,39 @@ class Dejavu {
 				output_error.subtract( this.layers[this.layers.length-1]['output'] );
 				
 				let sum = 0
+				
 				for(let i = 0; i < output_error.data.length; i++){
+				
 					sum += output_error.data[i] ** 2;
+					
 				}
+				
 				s +=  sum/this.layers[this.layers.length-1]['output'].rows;
 				
 				for(let i = this.layers.length-1; i >= 0; i--){
 					
 					let gradient = this.layers[i]['output'].copy();
+					
 					gradient.foreach( this.activations[ this.layers[i]['activation'] ]['dfunc'] );
+					
 					gradient.hadamard( output_error );
+					
 					gradient.scalar( this.lr );
 					
 					let layer = ( i ) ? this.layers[i-1]['output'].copy() : input.copy();
+					
 					layer.transpose();
+					
 					let delta = gradient.multiply( layer );
 					
 					this.layers[i]['weights'].add( delta );
+					
 					this.layers[i]['bias'].add( gradient );
 					
-					let error = this.layers[i]['weights'].copy()
+					let error = this.layers[i]['weights'].copy();
+					
 					error.transpose();
+					
 					output_error = error.multiply( output_error );
 					
 				}
@@ -113,13 +148,21 @@ class Dejavu {
 	shuffle(x,y){
 	
 		for(let i = 0; i < y.length; i++){
+		
 			const pos = Math.floor( Math.random() * y.length );
+			
 			const tmpy = y[i];
+			
 			const tmpx = x[i];
+			
 			y[i] = y[pos];
+			
 			x[i] = x[pos];
+			
 			y[pos] = tmpy;
+			
 			x[pos] = tmpx;
+			
 		}
 		
 	}
@@ -127,14 +170,23 @@ class Dejavu {
 	save(filename){
 	
 		const nn = {
+		
 			'layers': this.layers,
+			
 			'lr': this.lr,
+			
 			'it': this.it
+			
 		};
+		
 		const blob = new Blob([JSON.stringify(nn)], {type: 'text/json'});
+		
 		const link = document.createElement('a');
+		
 		link.href = window.URL.createObjectURL(blob);
+		
 		link.download = filename;
+		
 		link.click();
 		
 	}
@@ -150,10 +202,15 @@ class Dejavu {
 			const layer = nn.layers[i];
 		
 			this.layers[i] = {};
+			
 			this.layers[i]['weights'] = new Matrix( layer['weights'].rows, layer['weights'].cols, layer['weights'].data ) ;
+			
 			this.layers[i]['bias'] = new Matrix( layer['bias'].rows, layer['bias'].cols, layer['bias'].data );
+			
 			this.layers[i]['output'] = new Matrix( layer['output'].rows, layer['output'].cols, layer['output'].data );
+			
 			this.layers[i]['activation'] = layer['activation'];
+			
 			this.layers['length'] += 1;
 			
 		}

@@ -1,10 +1,10 @@
 {
-  "name": " ",
-  "short_name": " ",
-  "description": " ",
+  "name": "Aim And Shoot",
+  "short_name": "aimAndShoot",
+  "description": "A Neural Evolution Game Experiment",
   "start_url": "index.html",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#FFF",
   "theme_color": "#FFF",
   "icons": [

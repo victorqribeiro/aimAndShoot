@@ -1,4 +1,4 @@
-let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, isStarting = true;
+let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, generation = 1, isStarting = true;
 
 const init = function(){
 
@@ -154,6 +154,14 @@ const draw = function(){
 		
 	}
 	
+	c.textAlign = "start";
+	
+	c.fillStyle = "black";
+	
+	c.fillText("Generation: "+generation, 10, 30 )
+	
+	c.textAlign = "center";
+	
 }
 
 const endRound = function(){
@@ -167,6 +175,8 @@ const endRound = function(){
 	players = [player, ...enemies];
 	
 	startTime = Date.now();
+	
+	generation += 1;
 	
 	update();
 	
@@ -189,6 +199,8 @@ const gameover = function(){
 	if(u)
 	
 		cancelAnimationFrame(u)
+
+	generation = 1;
 
 	let i = 0;
 	

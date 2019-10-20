@@ -2,8 +2,15 @@ const filesToCache = [
     	'./',
       './index.html',
       './js/main.js',
+      './js/Matrix.js',
+      './js/Dejavu.js',
+      './js/Genetics.js',
+      './js/Player.js',
+      './js/Bullet.js',
       './css/main.css',
+      './sounds/shoot.mp3',
       './favicon.png',
+      './artwork.png',
       './manifest.json'
  ];
 

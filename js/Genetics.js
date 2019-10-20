@@ -11,7 +11,9 @@ class Genetics {
 	getRandomColor(){
 	
 		return [Math.floor( Math.random() * 256 ),
+		
 						Math.floor( Math.random() * 256 ),
+						
 					  Math.floor( Math.random() * 256 )];
 	
 	}
@@ -66,9 +68,9 @@ class Genetics {
 			
 			const selfInjury = this.divide(this.population[i].selfInjury, 40);
 			
-			this.population[i].fitness += agressive * 0.2;
+			this.population[i].fitness += agressive * 0.23;
 			
-			this.population[i].fitness += survial * 0.05;
+			this.population[i].fitness += survial * 0.02;
 			
 			this.population[i].fitness += hits * 0.55;
 			

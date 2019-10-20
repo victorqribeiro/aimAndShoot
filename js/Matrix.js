@@ -9,7 +9,9 @@ class Matrix {
 		if( values instanceof Array ){
 		
 			if( this.rows * this.cols != values.length ){
+			
 				console.log( this.rows, this.cols, values.length );
+				
 				throw new Error('The number of rows * cols should be equal to the length of the values');
 				
 			}
