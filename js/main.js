@@ -373,8 +373,10 @@ artwork.onload = _ => {
 
 	init();
 	
-	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) )
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ){
 
 		const control = new GuiControls();
+		
+	}
 	
 }
