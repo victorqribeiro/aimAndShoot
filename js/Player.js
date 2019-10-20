@@ -74,6 +74,10 @@ class Player {
 		
 		this.age = 0;
 		
+		this.fitness = 0;
+		
+		this.selfInjury = 0;
+		
 	}
 
 
@@ -92,7 +96,7 @@ class Player {
 		
 			return
 			
-		if(this.health < 1){
+		if(this.health <= 0){
 		
 			this.isDead = true
 			
@@ -136,6 +140,8 @@ class Player {
 		
 			this.speed.x = -this.speed.x;
 			
+			this.selfInjury += 1;
+			
 			this.health -= 0.25;
 			
 		}
@@ -147,6 +153,8 @@ class Player {
 		else{
 		
 			this.speed.y = -this.speed.y
+			
+			this.selfInjury += 1;
 			
 			this.health -= 0.25;
 			

@@ -6,12 +6,6 @@ class Genetics {
 		
 		this.populationTmp = [];
 		
-		this.populationSize = populationSize || 0;
-		
-		this.populationFeaturesSize = populationFeaturesSize || 0;
-		
-		this.bestOfGeneration;
-		
 	}
 
 
@@ -71,14 +65,51 @@ class Genetics {
 	}
 
 
+	divide(a, b){
+	
+		if(b == 0)
+		
+			return 0
+		
+		return a / b;
+		
+	}
+
+
 	evaluate(){
 	
 		let totalBulletsFired = player.shootsFired;
 		
-		for(let i = 0; i < 3; i++){
+		for(let i = 0; i < this.population.length; i++){
 		
 			totalBulletsFired += this.population[i].shootsFired;
 			
+		}
+		
+		for(let i = 0; i < this.population.length; i++){
+		
+			const agressive =  this.divide(this.population[i].shootsFired, totalBulletsFired);
+			
+			const survial = this.divide(this.population[i].age, totalTime);
+			
+			const hits = this.divide(this.population[i].hits, this.population[i].shootsFired);
+			
+			const friendlyFire = this.divide(this.population[i].friendlyFire, this.population[i].shootsFired);
+			
+			const selfInjury = this.divide(this.population[i].selfInjury, 40)
+			
+			this.population[i].fitness += agressive * 0.3;
+			
+			this.population[i].fitness += survial * 0.2;
+			
+			this.population[i].fitness += hits * 0.3;
+			
+			this.population[i].fitness -= friendlyFire * 0.12;
+			
+			this.population[i].fitness -= selfInjury * 0.08;
+			
+			this.population[i].fitness = Math.max(0, this.population[i].fitness);
+		
 		}
 		
 	}
@@ -90,7 +121,7 @@ class Genetics {
 		
 		for(let i = 0; i < this.populationTmp.length; i++){
 		
-			total += this.populationTmp[i].fit;
+			total += this.populationTmp[i].fitness;
 			
 		}
 		
@@ -98,13 +129,13 @@ class Genetics {
 		
 		for(let i = 0; i < this.populationTmp.length; i++){
 		
-			if( prob < this.populationTmp[i].fit ){
+			if( prob < this.populationTmp[i].fitness ){
 			
 				return this.populationTmp.splice(i,1)[0];
 				
 			}
 			
-			prob -= this.populationTmp[i].fit
+			prob -= this.populationTmp[i].fitness
 			
 		}
 		
@@ -112,106 +143,34 @@ class Genetics {
 
 
 	crossOver(_a,_b){
-	
-		let a,b,x;
-		
-		if( Math.random() < 0.5 ){
-		
-			a = _a;
-			
-			b = _b;
-			
-			x = w/4/2;
-			
-		}else{
-		
-			a = _b;
-			
-			b = _a;
-			
-			x = a.x
-			
-		}
-		
-		let child = new Invader(x,Math.random()*-20,a.shape.slice());
-		
-		let rand = Math.random();
-		
-		if( rand < 0.33 ){
-		
-			for(let i = 0; i < a.shape.length; i+=4){
-			
-				child.shape[i] = b.shape[i];
-				
-				child.shape[i+1] = b.shape[i+1];
-				
-			}
-			
-		}else if( rand < 0.66){
-		
-			for(let i = 0; i < a.shape.length/2; i++){
-			
-				child.shape[i] = b.shape[i];
-				
-			}
-			
-		}else{
-		
-			for(let i = 0; i < a.shape.length; i++){
-			
-				let value;
-				
-				if( i % 2 ){
-				
-					value = a.shape[i];
-					
-				}else{
-				
-					value = b.shape[i];
-					
-				}
-				
-				child.shape[i] = value;
-				
-			}
-			
-		}
-		
-		return child;
 		
 	}
 
 
 	mutate(child){
 	
-		let spot = Math.floor(Math.random() * child.shape.length);
-		
-		if( child.shape[spot] ){
-		
-			child.shape[spot] = 0;
-			
-		}else{
-		
-			child.shape[spot] = 1;
-			
-		}
-		
-		return child;
-		
 	}
 
 
 	evolve(){
+		
+		this.evaluate();
 	
 		let newPopulation = [];
 		
-		for(let x = 0; x < this.populationSize; x++){
+		for(let x = 0; x < this.population.length; x++){
 		
 			this.populationTmp = this.population.slice();
 			
 			let a = this.selectParent();
 			
 			let b = this.selectParent();
+			
+			console.log( a );
+			
+			console.log( b );
+			
+			return;
 			
 			let child = this.crossOver(a,b);
 			
@@ -229,17 +188,5 @@ class Genetics {
 		
 	}
 
-
-	elitism(){
-	
-		this.createPopulation();
-		
-		let rand = Math.floor(Math.random() * this.population.length);
-		
-		let invader = new Invader(w/4/2 ,Math.random()*-20, this.bestOfGeneration.shape.slice());
-		
-		this.population[rand] = invader;
-		
-	}
 	
 }

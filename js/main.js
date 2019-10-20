@@ -150,7 +150,7 @@ const endRound = function(){
 
 	totalTime = (Date.now() - startTime) / 1000;
 	
-	console.log( totalTime )
+	genetics.evolve();
 	
 }
 
