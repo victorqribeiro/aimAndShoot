@@ -361,11 +361,6 @@ const addEventsListener = function(){
 
 }
 
-if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-	const control = new GuiControls();
-}
-
-
 aPlayer = document.createElement('audio');
 
 aPlayer.src = "sounds/shoot.mp3";
@@ -377,5 +372,9 @@ artwork.src = "artwork.png";
 artwork.onload = _ => {
 
 	init();
+	
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) )
+
+		const control = new GuiControls();
 	
 }
