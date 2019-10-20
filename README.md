@@ -4,7 +4,7 @@
 
 You're Nole Ksum (the k is silent), a citizen concern about the uprising of the machine who decide to take matters into your own hands and put an end to all artificial intelligence. You must kill all the evil robots controlled by Neural Networks and stoping them from evolving into more dangerous beings. The entire human race counts on you, don't let them down.
 
-Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here]()
+Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here](https://victorqribeiro.github.io/aimAndShoot/)
 
 ## How To Play
 
