@@ -14,13 +14,15 @@ Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here](
 
 **mouse** - Aims and shoots (click).
 
-### Objetives
+### Objectives
 
 Kill the bots, don't get killed. Also don't touch the borders of the screen, they hurt you. But, fell free to push the bots into them.
 
-### Bars
+### Status Bars
 
-Above the bots there are two bars. The red one indicates health, if it's empty you die. The green one is the cool down meter, if it's empty you can't shoot.
+Above the bots there are two status bars.  
+The red one indicates health, if it's empty you die.  
+The green one is the cool down meter, if it's empty you can't shoot until it regenerates.
 
 ## About the Experiment
 
