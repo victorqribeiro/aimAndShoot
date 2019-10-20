@@ -18,8 +18,8 @@ class Genetics {
 	createPopulation(){
 	
 		this.population = [];
-		
-		while(this.population.length < 3){
+			
+		while(this.population.length < maxEnemies){
 			
 			const r = Math.floor( Math.random() * 256 ),
 						g = Math.floor( Math.random() * 256 ),
@@ -39,7 +39,7 @@ class Genetics {
 			
 				const enemy = new Player(_x, _y, Math.random() * TWOPI, [r,g,b], true);
 				
-				enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
+				enemy.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
 			
 				this.population.push( enemy );
 				
@@ -53,7 +53,7 @@ class Genetics {
 					
 						const enemy = new Player(_x, _y, Math.random() * TWOPI, [r,g,b], true);
 				
-						enemy.brain = new Dejavu([5, 6, 7], 0.1, 100);
+						enemy.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
 			
 						this.population.push( enemy );
 						

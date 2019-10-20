@@ -54,7 +54,13 @@ class Bullet {
 					
 				if( this.distance( this.targets[i] ) < this.targets[i].size+this.size ){
 				
-					if(this.owner) this.owner.hits++;
+					if(this.owner.ai !== this.targets[i].ai)
+					
+						this.owner.hits++;
+						
+					else
+					
+						this.owner.friendlyFire++;
 					
 					this.targets[i].speed.x += Math.cos(this.angle) * 0.1;
 					

@@ -1,6 +1,6 @@
 class Player {
 
-	constructor(x, y, angle, color, ia = false){
+	constructor(x, y, angle, color, ai = false){
 	
 		this.pos = {
 		
@@ -14,7 +14,7 @@ class Player {
 		
 		this.angle = angle || 0;
 		
-		this.ia = ia;
+		this.ai = ai;
 		
 		this.color = color || [0,0,0];
 		
@@ -70,6 +70,8 @@ class Player {
 		
 		this.hits = 0;
 		
+		this.friendlyFire = 0;
+		
 		this.age = 0;
 		
 	}
@@ -100,9 +102,9 @@ class Player {
 			
 		}
 
-		if( this.ia )
+		if( this.ai )
 		
-			this.updateIA(input)
+			this.updateAI(input)
 
 		this.angle = Math.atan2( this.looking.y - this.pos.y, this.looking.x - this.pos.x );
 		
@@ -134,7 +136,7 @@ class Player {
 		
 			this.speed.x = -this.speed.x;
 			
-			this.health -= 1;
+			this.health -= 0.25;
 			
 		}
 			
@@ -146,7 +148,7 @@ class Player {
 		
 			this.speed.y = -this.speed.y
 			
-			this.health -= 1;
+			this.health -= 0.25;
 			
 		}
 		
@@ -156,7 +158,7 @@ class Player {
 		
 		for(let i = 0; i < players.length; i++){
 		
-			if( players[i] == this )
+			if( players[i] == this || players[i].isDead )
 			
 				continue
 			
@@ -180,8 +182,16 @@ class Player {
 		
 		if( this.isShooting && this.coolDown > 0 && this.spread < 1 ){
 		
+		  if(aPlayer.paused)
+		  
+		      aPlayer.play();
+		      
+		  else
+		  
+		      aPlayer.currentTime = 0
+		
 			this.spread = this.spreadInit;
-				
+			
 			this.coolDown -= 1
 			
 			const targets = players.slice( 0 );
@@ -200,7 +210,7 @@ class Player {
 		
 		if( this.coolDown < this.coolDownInit && !this.isShooting )
 		
-			this.coolDown += 1;
+			this.coolDown += 0.25;
 		
 		this.spread -= 1;
 
@@ -212,11 +222,37 @@ class Player {
 		
 	}
 	
-	updateIA(target){
+	updateAI(target){
 	
-		const action = this.brain.predict( 
-			[target.pos.x / w, target.pos.y / h, target.looking.x / w, target.looking.y / h, target.isShooting ? 1 : 0 ] 
-		).data;
+		const data = Array( 6 * maxEnemies ).fill(0);
+		
+		let t = 0, i = 0;
+		
+		while(t < maxEnemies){
+		
+			t++;
+			
+			if( players[i] === this )
+			
+				continue
+			
+			data[i*5+0] = players[i].pos.x / w;
+		
+			data[i*5+1] = players[i].pos.y / h;
+		
+			data[i*5+2] = players[i].looking.x / w;
+		
+			data[i*5+3] = players[i].looking.y / h;
+		
+			data[i*5+4] = players[i].isShooting ? 1 : 0;
+			
+			data[i*5+5] = players[i].ai ? 1 : 0;
+			
+			i++;
+			
+		}
+	
+		const action = this.brain.predict( data	).data;
 		
 		action[0] > 0.5 ? this.isMoving.left = true : this.isMoving.left = false;
 			
@@ -249,7 +285,7 @@ class Player {
 	
 		c.fillStyle = "green";
 		
-		c.fillRect(this.pos.x - 50, this.pos.y - 45, this.coolDown / this.coolDownInit * 100 , 10);
+		c.fillRect(this.pos.x - 50, this.pos.y - 45, Math.max(0, this.coolDown / this.coolDownInit * 100) , 10);
 		
 		c.strokeRect(this.pos.x - 50, this.pos.y - 45, 100, 10);
 		

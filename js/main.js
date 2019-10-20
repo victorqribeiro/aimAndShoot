@@ -1,6 +1,8 @@
-let artwork, canvas, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, isStarting = true;
+let artwork, canvas, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, isStarting = true;
 
 const init = function(){
+
+	maxEnemies = 3;
 
 	isGameover = false;
 
@@ -79,11 +81,9 @@ const update = function(){
 	
 	for(let i = players.length-1; i >= 0 ; i--){
 	
-		players[i].update(player);
+		if( !players[i].isDead )
 		
-		if( players[i].isDead && players[i].iAnim >= 1 )
-		
-			players.splice(i, 1)
+			players[i].update(player);
 			
 	}
 	
@@ -96,8 +96,22 @@ const update = function(){
 		return
 		
 	}
+	
+	let allDead = true;
+	
+	for(let i = 0; i < enemies.length; i++ ){
+	
+		if( !enemies[i].isDead ){
 		
-	if( players.length == 1 ){
+			allDead = false;
+			
+			break;
+		
+		}
+	
+	}
+	
+	if( allDead ){
 	
 		endRound()
 		
@@ -124,7 +138,9 @@ const draw = function(){
 	
 	for(let i = 0; i < players.length; i++){
 	
-		players[i].show();
+		if( !players[i].isDead )
+		
+			players[i].show();
 		
 	}
 	
@@ -142,7 +158,7 @@ const startScreen = function(){
 
 	c.clearRect(0,0,w,h);
 	
-	c.drawImage( artwork, 0, 0 );
+	c.drawImage(artwork, 0, 0, artwork.width, artwork.height, 0, 0, w, h);
 	
 	c.fillColor = "black";
 	
@@ -309,6 +325,10 @@ window.onresize = _ => {
 	init();
 	
 }
+
+aPlayer = document.createElement('audio');
+
+aPlayer.src = "sounds/shoot.mp3";
 
 artwork = new Image();
 
