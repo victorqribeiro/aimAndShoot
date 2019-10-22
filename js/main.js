@@ -180,6 +180,8 @@ const endRound = function(){
 	
 	generation += 1;
 	
+	player.health = Math.min(10, player.health + player.health * 0.15)
+	
 	update();
 	
 }
