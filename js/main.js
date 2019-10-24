@@ -253,24 +253,28 @@ const addEventsListener = function(){
 
 		switch(e.keyCode){
 
+			case 37 :
 			case 65 :
 
 					player.isMoving.left = true;
 
 				break;
 
+			case 38 :
 			case 87 :
 
 					player.isMoving.up = true;
 
 				break;
 
+			case 39 :
 			case 68 :
 
 					player.isMoving.right = true;
 
 				break;
 
+			case 40 :
 			case 83 :
 
 					player.isMoving.down = true;
@@ -287,24 +291,28 @@ const addEventsListener = function(){
 
 		switch(e.keyCode){
 
+			case 37 :
 			case 65 :
 
 					player.isMoving.left = false;
 
 				break;
 
+			case 38 :
 			case 87 :
 
 					player.isMoving.up = false;
 
 				break;
 
+			case 39 :
 			case 68 :
 
 					player.isMoving.right = false;
 
 				break;
 
+			case 40 :
 			case 83 :
 
 					player.isMoving.down = false;
