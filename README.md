@@ -10,7 +10,7 @@ Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here](
 
 ### Controls
 
-**w, a, s, d** - Move the player up, left, down, right.
+**w, a, s, d** - Move the player up, left, down, right. Arrow keys do the same.
 
 **mouse** - Aims and shoots (click).
 
