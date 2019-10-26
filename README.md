@@ -40,6 +40,10 @@ I've always wanted to take the time to make a [Neuroevolution](https://en.wikipe
 
 Each bot is controlled by it's own Neural Network (that I made a while back - [here](https://github.com/victorqribeiro/digitRecognition)). When all the bots die, the genetic algorithm evaluates their fitness score (based on how many shots they fired, how many hits the got, how many friends they shot, how much they hurt themselves and how much they moved during the round) and cross the ones with the highest scores.
 
-This goes on forever, until the player dies (which will happen eventually, so Nole can't ever save the human race). By the way, the background history is a joke. I don't mean to make fun of anyone. The idea just seems funny and fit the project.
+
+
+
+This goes on forever, until the player dies (which will happen eventually, so Nole can't never save the human race, after all). By the way, the background history is a joke. I don't mean to make fun of anyone. The idea just seems funny and fit the project.
+
 
 *Fun Fact: the artwork was created using my [PaintDraw](https://github.com/victorqribeiro/paintDraw) tool.*
