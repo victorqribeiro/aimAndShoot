@@ -150,8 +150,6 @@ const draw = function(){
 
 	for(let i = 0; i < players.length; i++){
 
-		if( !players[i].isDead )
-
 			players[i].show();
 
 	}
