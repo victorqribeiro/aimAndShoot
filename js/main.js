@@ -1,4 +1,4 @@
-let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, u, aPlayer, maxEnemies, gracePeriod, generation = 1, isStarting = true;
+let artwork, canvas, scale, offsetX, offsetY, hud, portrait, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, gameoverScreen, u, aPlayer, maxEnemies, gracePeriod, generation = 1, isStarting = true;
 
 const init = function(){
 
@@ -22,9 +22,9 @@ const init = function(){
 
 	canvas.id = "game";
 
-	canvas.width = w = 1366;
+	w = 1366;
 
-	canvas.height = h = 768;
+	h = 768;
 
 	w2 = w/2;
 
@@ -38,17 +38,9 @@ const init = function(){
 
 	c = canvas.getContext('2d');
 
-	c.font = "25px Arial";
-
-	c.textAlign = "center";
-
 	document.body.appendChild(canvas);
 
-	rect = canvas.getBoundingClientRect();
-
-	_x = w/rect.width;
-
-	_y = h/rect.height;
+	fitCanvas();
 
 	player = new Player();
 
@@ -75,7 +67,53 @@ const init = function(){
 }
 
 
+const fitCanvas = function(){
+
+	scale = Math.min(window.innerWidth / w, window.innerHeight / h);
+
+	const cssWidth = w * scale, cssHeight = h * scale;
+
+	offsetX = (window.innerWidth - cssWidth) / 2;
+
+	offsetY = (window.innerHeight - cssHeight) / 2;
+
+	canvas.style.width = cssWidth + "px";
+
+	canvas.style.height = cssHeight + "px";
+
+	canvas.style.left = offsetX + "px";
+
+	canvas.style.top = offsetY + "px";
+
+	hud.style.left = offsetX + "px";
+
+	hud.style.top = offsetY + "px";
+
+	const dpr = window.devicePixelRatio || 1;
+
+	canvas.width = Math.round(cssWidth * dpr);
+
+	canvas.height = Math.round(cssHeight * dpr);
+
+	c.setTransform(canvas.width / w, 0, 0, canvas.height / h, 0, 0);
+
+	c.font = "25px Arial";
+
+	c.textAlign = "center";
+
+}
+
 const update = function(){
+
+	if( portrait.matches ){
+
+		prevTime = Date.now();
+
+		u = requestAnimationFrame( update );
+
+		return
+
+	}
 
 	nextTime = Date.now();
 
@@ -156,13 +194,19 @@ const draw = function(){
 
 	}
 
-	c.textAlign = "start";
+	c.lineWidth = 6;
 
-	c.fillStyle = "black";
+	c.strokeStyle = "#c0392b";
 
-	c.fillText("Generation: "+generation, 10, 30 )
+	c.strokeRect(3, 3, w - 6, h - 6);
 
-	c.textAlign = "center";
+	c.lineWidth = 1;
+
+	c.strokeStyle = "black";
+
+	hud.hidden = false;
+
+	hud.textContent = "Generation: " + generation;
 
 }
 
@@ -190,7 +234,9 @@ const startScreen = function(){
 
 	c.drawImage(artwork, 0, 0, artwork.width, artwork.height, 0, 0, w, h);
 
-	c.fillColor = "black";
+	hud.hidden = true;
+
+	c.fillStyle = "black";
 
 	c.fillText("Click to Start", w-w2/2, h2 )
 
@@ -232,6 +278,14 @@ const gameover = function(){
 
 	}
 
+	gameoverScreen = function(){
+
+		i = 1;
+
+		drawGameover();
+
+	}
+
 	drawGameover();
 
 }
@@ -240,7 +294,7 @@ const addEventsListener = function(){
 
 	document.body.addEventListener('mousemove', e => {
 
-		player.lookAt(e.clientX * _x, e.clientY * _y);
+		player.lookAt((e.clientX - offsetX) / scale, (e.clientY - offsetY) / scale);
 
 	});
 
@@ -357,13 +411,53 @@ const addEventsListener = function(){
 
 	window.onresize = _ => {
 
-		rect = canvas.getBoundingClientRect();
+		fitCanvas();
 
-		_x = w/rect.width;
+		if( isStarting )
 
-		_y = h/rect.height;
+			startScreen();
+
+		else if( isGameover )
+
+			gameoverScreen();
 
 	}
+
+}
+
+hud = document.createElement('div');
+
+hud.id = "hud";
+
+hud.hidden = true;
+
+document.body.appendChild(hud);
+
+portrait = window.matchMedia("(orientation: portrait) and (pointer: coarse)");
+
+const canLockLandscape = !!(document.documentElement.requestFullscreen && screen.orientation && screen.orientation.lock);
+
+const lockLandscape = function(){
+
+	if( !canLockLandscape || document.fullscreenElement )
+
+		return
+
+	document.documentElement.requestFullscreen()
+
+		.then( _ => screen.orientation.lock('landscape') )
+
+		.catch( e => e );
+
+}
+
+if( canLockLandscape ){
+
+	const rotate = document.getElementById('rotate');
+
+	rotate.textContent += " Or tap here to switch.";
+
+	rotate.addEventListener('touchend', lockLandscape);
 
 }
 

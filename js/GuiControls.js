@@ -201,6 +201,8 @@ class GuiControls {
 		
 			player.isShooting = false;
 			
+			lockLandscape();
+			
 		});
 		
 		return btn;
