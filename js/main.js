@@ -48,11 +48,11 @@ const init = function(){
 
 	_y = h/rect.height;
 
+	player = new Player();
+
 	genetics = new Genetics();
 
 	genetics.createPopulation();
-
-	player = new Player();
 
 	enemies = genetics.population.slice();
 
@@ -77,7 +77,7 @@ const update = function(){
 
 	nextTime = Date.now();
 
-	deltaTime = nextTime - prevTime;
+	deltaTime = Math.min(nextTime - prevTime, 50);
 
 	totalTime += deltaTime;
 
@@ -357,13 +357,11 @@ const addEventsListener = function(){
 
 	window.onresize = _ => {
 
-		if(u)
+		rect = canvas.getBoundingClientRect();
 
-			cancelAnimationFrame(u)
+		_x = w/rect.width;
 
-		isStarting = true;
-
-		init();
+		_y = h/rect.height;
 
 	}
 

@@ -256,49 +256,63 @@ class Player {
 	
 	updateAI(target){
 	
-		const data = Array( 6 * maxEnemies ).fill(0);
+		const data = Array( this.brain.layers[0].weights.cols ).fill(0);
 		
-		let t = 0, i = 0;
+		data[0] = this.pos.x / w;
 		
-		while(t < maxEnemies){
+		data[1] = this.pos.y / h;
 		
-			t++;
+		data[2] = this.health / 10;
+		
+		data[3] = this.coolDown / this.coolDownInit;
+		
+		let slot = 0;
+		
+		for(let i = 0; i < players.length && slot < maxEnemies; i++){
+		
+			const other = players[i];
 			
-			if( players[i] === this )
+			if( other === this )
+			
+				continue
+				
+			const offset = 4 + slot * 6;
+			
+			slot++;
+			
+			if( other.isDead )
 			
 				continue
 			
-			data[i*5+0] = players[i].isDead ? 0 : players[i].pos.x / w;
+			data[offset+0] = other.pos.x / w;
 		
-			data[i*5+1] = players[i].isDead ? 0 : players[i].pos.y / h;
+			data[offset+1] = other.pos.y / h;
 		
-			data[i*5+2] = players[i].isDead ? 0 : players[i].looking.x / w;
+			data[offset+2] = other.looking.x / w;
 		
-			data[i*5+3] = players[i].isDead ? 0 : players[i].looking.y / h;
+			data[offset+3] = other.looking.y / h;
 		
-			data[i*5+4] = players[i].isDead ? 0 : players[i].isShooting ? 1 : 0;
+			data[offset+4] = other.isShooting ? 1 : 0;
 			
-			data[i*5+5] = players[i].isDead ? 0 : players[i].ai ? 1 : 0;
-			
-			i++;
+			data[offset+5] = other.ai ? 1 : 0;
 			
 		}
 	
-		const action = this.brain.predict( data	).data;
+		const action = this.brain.predict( data ).data;
 		
-		action[0] > 0.5 ? this.isMoving.left = true : this.isMoving.left = false;
+		this.isMoving.left = action[0] > 0;
 			
-		action[1] > 0.5 ? this.isMoving.up = true : this.isMoving.up = false;
+		this.isMoving.up = action[1] > 0;
 			
-		action[2] > 0.5 ? this.isMoving.right = true : this.isMoving.right = false;
+		this.isMoving.right = action[2] > 0;
 		
-		action[3] > 0.5 ? this.isMoving.down = true : this.isMoving.down = false;
+		this.isMoving.down = action[3] > 0;
 		
-		this.looking.x = action[4] * w;
+		this.looking.x = (action[4] + 1) / 2 * w;
 		
-		this.looking.y = action[5] * h;
+		this.looking.y = (action[5] + 1) / 2 * h;
 		
-		action[6] > 0.5 ? this.isShooting = true : this.isShooting = false;
+		this.isShooting = action[6] > 0;
 		
 	}
 
