@@ -190,30 +190,6 @@ class Player {
 		
 		this.speed.y *= this.friction;
 		
-		for(let i = 0; i < players.length; i++){
-		
-			if( players[i] == this || players[i].isDead )
-			
-				continue
-			
-			if( this.distance( players[i] ) <= players[i].size + this.size ) {
-				
-				players[i].speed.x += (this.speed.x);
-				
-				players[i].speed.y += (this.speed.y);
-				
-				this.speed.x += -players[i].speed.x;
-				
-				this.speed.y += -players[i].speed.y;
-				
-				this.speed.x *= 0.005;
-				
-				this.speed.y *= 0.005;
-			
-			}
-			
-		}
-		
 		const canShoot = !this.ai || totalTime >= gracePeriod;
 		
 		if( this.isShooting && canShoot && this.coolDown >= 1 && this.shotTimer <= 0 ){

@@ -103,6 +103,94 @@ const fitCanvas = function(){
 
 }
 
+const resolveCollisions = function(){
+
+	const restitution = 0.8;
+
+	for(let i = 0; i < players.length; i++){
+
+		const a = players[i];
+
+		if( a.isDead )
+
+			continue
+
+		for(let j = i + 1; j < players.length; j++){
+
+			const b = players[j];
+
+			if( b.isDead )
+
+				continue
+
+			let dx = b.pos.x - a.pos.x, dy = b.pos.y - a.pos.y;
+
+			let dist = Math.sqrt(dx * dx + dy * dy);
+
+			const minDist = a.size + b.size;
+
+			if( dist >= minDist )
+
+				continue
+
+			if( dist === 0 ){
+
+				const angle = Math.random() * TWOPI;
+
+				dx = Math.cos(angle);
+
+				dy = Math.sin(angle);
+
+				dist = 1;
+
+			}
+
+			const nx = dx / dist, ny = dy / dist;
+
+			const push = (minDist - dist) / 2;
+
+			a.pos.x -= nx * push;
+
+			a.pos.y -= ny * push;
+
+			b.pos.x += nx * push;
+
+			b.pos.y += ny * push;
+
+			const approach = (b.speed.x - a.speed.x) * nx + (b.speed.y - a.speed.y) * ny;
+
+			if( approach < 0 ){
+
+				const impulse = -(1 + restitution) * approach / 2;
+
+				a.speed.x -= impulse * nx;
+
+				a.speed.y -= impulse * ny;
+
+				b.speed.x += impulse * nx;
+
+				b.speed.y += impulse * ny;
+
+			}
+
+			keepInside(a);
+
+			keepInside(b);
+
+		}
+
+	}
+
+}
+
+const keepInside = function(p){
+
+	p.pos.x = Math.min(Math.max(p.pos.x, p.size + 1), w - p.size - 1);
+
+	p.pos.y = Math.min(Math.max(p.pos.y, p.size + 1), h - p.size - 1);
+
+}
+
 const update = function(){
 
 	if( portrait.matches ){
@@ -138,6 +226,8 @@ const update = function(){
 			players[i].update(player);
 
 	}
+
+	resolveCollisions();
 
 	draw();
 
