@@ -1,8 +1,10 @@
-let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, startTime, totalTime, isGameover, u, aPlayer, maxEnemies, generation = 1, isStarting = true;
+let artwork, canvas, rect, _x, _y,  c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, u, aPlayer, maxEnemies, gracePeriod, generation = 1, isStarting = true;
 
 const init = function(){
 
 	maxEnemies = 7;
+
+	gracePeriod = 1500;
 
 	isGameover = false;
 
@@ -30,7 +32,7 @@ const init = function(){
 
 	TWOPI = Math.PI * 2;
 
-	prevTime = nextTime = deltaTime = startTime = Date.now();
+	prevTime = nextTime = deltaTime = Date.now();
 
 	totalTime = 0;
 
@@ -166,15 +168,13 @@ const draw = function(){
 
 const endRound = function(){
 
-	totalTime = (Date.now() - startTime) / 1000;
-
 	genetics.evolve();
+
+	totalTime = 0;
 
 	enemies = genetics.population.slice();
 
 	players = [player, ...enemies];
-
-	startTime = Date.now();
 
 	generation += 1;
 

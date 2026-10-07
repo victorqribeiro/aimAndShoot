@@ -56,13 +56,15 @@ class Player {
 		
 		this.isDead = false;
 		
-		this.coolDownInit = 20;
+		this.coolDownInit = 10;
 		
 		this.coolDown = this.coolDownInit;
 		
-		this.spreadInit = 5;
+		this.coolDownRegen = 0.005;
 		
-		this.spread = this.spreadInit;
+		this.shotInterval = ai ? 250 : 200;
+		
+		this.shotTimer = 0;
 		
 		this.iAnim = 0;
 		
@@ -102,7 +104,7 @@ class Player {
 		
 			this.isDead = true
 			
-			this.age = (Date.now() - startTime) / 1000;
+			this.age = totalTime;
 			
 			return
 			
@@ -212,7 +214,9 @@ class Player {
 			
 		}
 		
-		if( this.isShooting && this.coolDown > 0 && this.spread < 1 ){
+		const canShoot = !this.ai || totalTime >= gracePeriod;
+		
+		if( this.isShooting && canShoot && this.coolDown >= 1 && this.shotTimer <= 0 ){
 		
 		  if(aPlayer.paused)
 		  
@@ -222,7 +226,7 @@ class Player {
 		  
 		      aPlayer.currentTime = 0
 		
-			this.spread = this.spreadInit;
+			this.shotTimer = this.shotInterval;
 			
 			this.coolDown -= 1
 			
@@ -240,11 +244,11 @@ class Player {
 			
 		}
 		
-		if( this.coolDown < this.coolDownInit && !this.isShooting )
+		if( !this.isShooting )
 		
-			this.coolDown += 0.25;
+			this.coolDown = Math.min(this.coolDownInit, this.coolDown + this.coolDownRegen * deltaTime);
 		
-		this.spread -= 1;
+		this.shotTimer -= deltaTime;
 
 	}
 
@@ -365,6 +369,10 @@ class Player {
 			
 		}
 		
+		if( this.ai && totalTime < gracePeriod )
+		
+			c.globalAlpha = 0.3 + 0.7 * totalTime / gracePeriod;
+		
 		this.showHealthBar();
 		
 		this.showCooldownBar();
@@ -392,6 +400,8 @@ class Player {
 		c.fill();
 		
 		c.shadowBlur = 0;
+		
+		c.globalAlpha = 1;
 		
 	}
 

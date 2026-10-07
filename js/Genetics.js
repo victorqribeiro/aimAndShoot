@@ -104,27 +104,17 @@ class Genetics {
 
 	evaluate(){
 	
-		let totalBulletsFired = player.shootsFired;
-		
 		for(let i = 0; i < this.population.length; i++){
 		
-			totalBulletsFired += this.population[i].shootsFired;
-			
-		}
-		
-		for(let i = 0; i < this.population.length; i++){
-		
-			const agressive =  this.divide(this.population[i].shootsFired, totalBulletsFired);
-			
 			const survial = this.divide(this.population[i].age, totalTime);
 			
-			const hits = this.divide(this.population[i].hits, this.population[i].shootsFired);
+			const hits = this.population[i].hits / (this.population[i].shootsFired + 5);
+			
+			const misses = this.population[i].shootsFired - this.population[i].hits - this.population[i].friendlyFire;
 			
 			const friendlyFire = this.divide(this.population[i].friendlyFire, this.population[i].shootsFired);
 			
 			const selfInjury = this.divide(this.population[i].selfInjury, 40);
-			
-			this.population[i].fitness += agressive * 0.23;
 			
 			this.population[i].fitness += survial * 0.02;
 			
@@ -133,6 +123,8 @@ class Genetics {
 			this.population[i].fitness -= friendlyFire * 0.08;
 			
 			this.population[i].fitness -= selfInjury * 0.12;
+			
+			this.population[i].fitness -= Math.min(1, misses / 50) * 0.1;
 			
 			this.population[i].fitness *= (this.population[i].move / 100);
 			
