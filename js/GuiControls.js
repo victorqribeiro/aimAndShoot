@@ -6,19 +6,19 @@ class GuiControls {
 	
 			e.preventDefault();
 		
-		});
+		}, { passive: false });
 	
 		document.body.addEventListener('touchend', e => {
 	
 			e.preventDefault();
 		
-		});
+		}, { passive: false });
 	
 		document.body.addEventListener('touchmove', e => {
 	
 			e.preventDefault();
 		
-		});
+		}, { passive: false });
 
 		this.main = document.createElement('div');
 		
