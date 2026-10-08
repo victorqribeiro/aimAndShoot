@@ -1,3 +1,6 @@
+// stats are kept in ms; the fitness divisors match the old per-frame values at 60Hz
+const FRAME_MS = 1000 / 60, MOVE_MS = 100 * FRAME_MS, WALL_MS = 40 * FRAME_MS;
+
 let artwork, canvas, scale, offsetX, offsetY, hud, portrait, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, gameoverScreen, u, aPlayer, maxEnemies, gracePeriod, generation = 1, isStarting = true;
 
 const init = function(){

@@ -116,11 +116,17 @@ class Player {
 
 		this.angle = Math.atan2( this.looking.y - this.pos.y, this.looking.x - this.pos.x );
 		
+		// physics constants are tuned per 60Hz frame; scale them by elapsed time
+		
+		const frames = deltaTime / FRAME_MS;
+		
+		const accel = this.velocity * frames;
+		
 		let moved = false;
 		
 		if( this.isMoving.left ){
 		
-			this.speed.x -= this.velocity;
+			this.speed.x -= accel;
 			
 			moved = true;
 			
@@ -128,7 +134,7 @@ class Player {
 		
 		if( this.isMoving.up ){
 		
-			this.speed.y -= this.velocity;
+			this.speed.y -= accel;
 			
 			moved = true;
 			
@@ -136,7 +142,7 @@ class Player {
 			
 		if( this.isMoving.right ){
 		
-			this.speed.x += this.velocity;
+			this.speed.x += accel;
 			
 			moved = true;
 			
@@ -144,7 +150,7 @@ class Player {
 			
 		if( this.isMoving.down ){
 		
-			this.speed.y += this.velocity;
+			this.speed.y += accel;
 			
 			moved = true;
 			
@@ -156,7 +162,9 @@ class Player {
 		
 		if( moved )
 		
-			this.move += 1;
+			this.move += deltaTime;
+		
+		let hitWall = false;
 
 		if( this.pos.x + _x > this.size && this.pos.x + _x < w - this.size )	
 		
@@ -166,9 +174,7 @@ class Player {
 		
 			this.speed.x = -this.speed.x;
 			
-			this.selfInjury += 1;
-			
-			this.health -= 0.25;
+			hitWall = true;
 			
 		}
 			
@@ -180,15 +186,23 @@ class Player {
 		
 			this.speed.y = -this.speed.y
 			
-			this.selfInjury += 1;
-			
-			this.health -= 0.25;
+			hitWall = true;
 			
 		}
 		
-		this.speed.x *= this.friction;
+		if( hitWall ){
 		
-		this.speed.y *= this.friction;
+			this.selfInjury += deltaTime;
+			
+			this.health -= 0.25 * frames;
+			
+		}
+		
+		const friction = this.friction ** frames;
+		
+		this.speed.x *= friction;
+		
+		this.speed.y *= friction;
 		
 		const canShoot = !this.ai || totalTime >= gracePeriod;
 		
