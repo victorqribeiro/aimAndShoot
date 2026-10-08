@@ -1,7 +1,8 @@
 # Shared evolution: plan and handoff
 
-Status: **built on branch `claude/relaxed-sagan-k058qf`, not yet deployed or
-merged.** Steps 1–4 are done; see "Implementation notes" at the end for where
+Status: **built on branch `claude/relaxed-sagan-k058qf` and deployed to
+victorribeiro.com on 2026-10-08 (backup of the 2019 version:
+`/root/backups/var/www/html/aimAndShoot.20261008-1817`); not merged yet.** Steps 1–4 are done; see "Implementation notes" at the end for where
 the code differs from the original plan.
 
 ## Goal
