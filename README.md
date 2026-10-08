@@ -54,6 +54,7 @@ The live version is no longer the 2019 original. In 2026 the game was fixed and 
 
 - **The bots can actually learn now.** Several bugs in the neuroevolution were fixed: each bot sees every player plus its own state, the aim works, the fitness no longer rewards spraying bullets, and the best bot of each generation is kept.
 - **Shared evolution.** The bots are no longer reset when you die. They come from one population kept on the server and evolved by everyone who played before you. Your browser only reports how each bot did in the round; the server scores the bots and breeds the next generations. The HUD shows the shared generation and your round. If the server can't be reached, the game falls back to evolving the bots locally, as before.
+- **Suggestions from the [2019 Hacker News thread](https://news.ycombinator.com/item?id=21353123).** Your health refills every round, the game-over screen shows the round you reached and your best, the gunshots are quieter (press **M** to mute), bots no longer spawn on top of you, and killing the shooters first no longer breeds pacifists as easily.
 - **Fairer gameplay.** Limited fire rate, a short grace period at the start of each round, the same movement speed at any screen refresh rate, a fixed-size arena that scales to fit the screen, and collision fixes.
 
 The backend is PHP with SQLite (`api/`). See [docs/shared-evolution-plan.md](docs/shared-evolution-plan.md) for how it works. The GitHub Pages link now redirects to the live version.

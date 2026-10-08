@@ -152,7 +152,7 @@ function fitness($s, $roundTime) {
 	$friendly = $s['shots'] ? $s['friendlyFire'] / $s['shots'] : 0;
 	$wall = $s['selfInjury'] / WALL_MS;
 	$f = $survival * 0.02 + $accuracy * 0.55 - $friendly * 0.08 - $wall * 0.12 - min(1, $misses / 50) * 0.1;
-	$f *= $s['move'] / MOVE_MS;
+	$f *= min(1, $s['move'] / MOVE_MS);   // must move, but a longer life isn't a bigger multiplier
 	return max(0, $f);
 }
 
