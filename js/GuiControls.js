@@ -187,7 +187,7 @@ class GuiControls {
 	
 				isStarting = false;
 		
-				update();
+				startRound();
 		
 				return;
 		

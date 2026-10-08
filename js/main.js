@@ -1,7 +1,11 @@
 // stats are kept in ms; the fitness divisors match the old per-frame values at 60Hz
 const FRAME_MS = 1000 / 60, MOVE_MS = 100 * FRAME_MS, WALL_MS = 40 * FRAME_MS;
 
-let artwork, canvas, scale, offsetX, offsetY, hud, portrait, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, gameoverScreen, u, aPlayer, maxEnemies, gracePeriod, generation = 1, isStarting = true;
+let artwork, canvas, scale, offsetX, offsetY, hud, portrait, c, w, h, w2, h2, TWOPI, genetics, player, enemies, bullets, players, prevTime, nextTime, deltaTime, totalTime, isGameover, gameoverScreen, u, aPlayer, maxEnemies, gracePeriod, round = 1, hudText, hudRect, isStarting = true;
+
+const shared = new Shared();
+
+shared.prefetch();
 
 const init = function(){
 
@@ -49,13 +53,11 @@ const init = function(){
 
 	genetics = new Genetics();
 
-	genetics.createPopulation();
-
-	enemies = genetics.population.slice();
+	enemies = [];
 
 	bullets = Array();
 
-	players = [player, ...enemies];
+	players = [player];
 
 	if( isStarting ){
 
@@ -63,7 +65,7 @@ const init = function(){
 
 	}else{
 
-		update();
+		startRound();
 
 	}
 
@@ -91,6 +93,8 @@ const fitCanvas = function(){
 	hud.style.left = offsetX + "px";
 
 	hud.style.top = offsetY + "px";
+
+	hudRect = null;
 
 	const dpr = window.devicePixelRatio || 1;
 
@@ -297,15 +301,82 @@ const draw = function(){
 
 	c.strokeStyle = "black";
 
-	hud.hidden = false;
-
-	hud.textContent = "Generation: " + generation;
+	updateHud();
 
 }
 
-const endRound = function(){
+const updateHud = function(){
 
-	genetics.evolve();
+	hud.hidden = false;
+
+	const text = shared.online && shared.generation ?
+
+		"Generation " + shared.generation.toLocaleString() + " · Round " + round :
+
+		"Generation: " + round;
+
+	if( text !== hudText ){
+
+		hud.textContent = hudText = text;
+
+		hudRect = null;
+
+	}
+
+	if( !hudRect ){
+
+		const r = hud.getBoundingClientRect();
+
+		hudRect = {
+
+			left: (r.left - offsetX) / scale,
+
+			top: (r.top - offsetY) / scale,
+
+			right: (r.right - offsetX) / scale,
+
+			bottom: (r.bottom - offsetY) / scale
+
+		};
+
+	}
+
+	// fade the HUD while a player or its status bars are under it
+
+	const covered = players.some( p => !p.isDead &&
+
+		p.pos.x + 50 > hudRect.left && p.pos.x - 50 < hudRect.right &&
+
+		p.pos.y + p.size > hudRect.top && p.pos.y - 60 < hudRect.bottom );
+
+	hud.classList.toggle('faded', covered);
+
+}
+
+// Next bots: the shared population if the server answers, otherwise local evolution.
+const nextPopulation = function(fresh){
+
+	drawLoading();
+
+	return shared.take().then( sharedEnemies => {
+
+		if( sharedEnemies )
+
+			genetics.population = sharedEnemies;
+
+		else if( fresh || !genetics.population.length )
+
+			genetics.createPopulation();
+
+		else
+
+			genetics.evolve();
+
+	});
+
+}
+
+const beginRound = function(){
 
 	totalTime = 0;
 
@@ -313,11 +384,37 @@ const endRound = function(){
 
 	players = [player, ...enemies];
 
-	generation += 1;
+	prevTime = Date.now();
+
+	update();
+
+}
+
+const startRound = function(){
+
+	nextPopulation(true).then( beginRound );
+
+}
+
+const endRound = function(){
+
+	shared.report(enemies, totalTime);
+
+	round += 1;
 
 	player.health = Math.min(10, player.health + player.health * 0.15)
 
-	update();
+	nextPopulation(false).then( beginRound );
+
+}
+
+const drawLoading = function(){
+
+	draw();
+
+	c.fillStyle = "black";
+
+	c.fillText("Loading bots...", w2, h2 - 80);
 
 }
 
@@ -341,7 +438,9 @@ const gameover = function(){
 
 		cancelAnimationFrame(u)
 
-	generation = 1;
+	shared.report(enemies, totalTime);
+
+	round = 1;
 
 	let i = 0;
 
@@ -492,7 +591,7 @@ const addEventsListener = function(){
 
 			isStarting = false;
 
-			update();
+			startRound();
 
 			return;
 

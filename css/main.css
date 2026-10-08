@@ -29,6 +29,11 @@ body {
   color: #000;
   pointer-events: none;
   z-index: 1;
+  transition: opacity 0.2s;
+}
+
+#hud.faded {
+  opacity: 0.2;
 }
 
 #rotate {

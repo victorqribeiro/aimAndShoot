@@ -1,7 +1,8 @@
 # Shared evolution: plan and handoff
 
-Status: **planned, not started.** This document is the handoff for the session
-that will build it. Read it fully before changing code.
+Status: **built on branch `claude/relaxed-sagan-k058qf`, not yet deployed or
+merged.** Steps 1–4 are done; see "Implementation notes" at the end for where
+the code differs from the original plan.
 
 ## Goal
 
@@ -28,15 +29,16 @@ brains, scores them and breeds them.
 - **Offline fallback:** if the API can't be reached, the game falls back to
   the current local evolution, unchanged.
 
-## Open questions (ask the owner before building the affected part)
+## Owner's answers (2026-10-08)
 
-1. **Who do new players face?** The current crowd-evolved population, or a
-   ladder that starts at an early snapshot and climbs? (Risk: crowd-evolved
-   bots may be too hard for a first-time player.)
-2. **GitHub Pages:** retire it outright (redirect to the VPS URL), or keep it
-   as an offline-only build? If it ever calls the VPS API, the API needs CORS.
-3. **Generation counter:** show the global generation (collective progress),
-   the player's round number, or both?
+1. **New players** face the current crowd-evolved population. Snapshots may
+   become difficulty levels later.
+2. **GitHub Pages** is retired: `index.html` redirects `*.github.io` to
+   `https://victorribeiro.com/aimAndShoot/`, so no CORS is needed.
+3. **HUD** shows both: "Generation 1,234 · Round 3" (offline: "Generation: N"
+   as before).
+4. Work stays on this branch until the owner merges it. No database backups
+   for now. Fix the phone-landscape HUD overlap.
 
 ## State of the code (branch `claude/relaxed-sagan-k058qf`)
 
@@ -237,3 +239,34 @@ damage of faked stats and smooths out the noise of one lucky round.
   a client release.
 - **It is now a real backend** to keep running and backed up, rather than
   static files only.
+
+## Implementation notes
+
+- **Files:** `api/_lib.php` (DB, fitness, breeding; `_` files are denied by
+  `api/.htaccess`, like the owner's other apps), `api/population.php`,
+  `api/results.php`, `js/Shared.js` (client), `tests/`.
+- **Database:** `/home/sqlite3-DBs/aimAndShoot.sqlite3` by default, override
+  with the `AIMANDSHOOT_DB` env var. Schema and the 50 random seed brains are
+  created on first request (`PRAGMA user_version`), so no init script. The IP
+  hash salt is stored in `meta`.
+- **Units:** `move`, `selfInjury` and `age` are in ms; fitness uses
+  `move / MOVE_MS` and `selfInjury / WALL_MS` with `MOVE_MS = 100 frames` and
+  `WALL_MS = 40 frames` at 60Hz, so values match the old per-frame ones.
+  Acceleration, friction and wall damage are scaled by elapsed time.
+- **Breeding trigger:** "20 brains with ≥ 3 games" would fire on every report
+  once reached, so instead a generation is bred when *every* live brain has
+  ≥ 3 games: the 12 weakest (about a quarter of 50) are replaced by children
+  of the other 38, which always include the best one. About 8 reported rounds
+  per generation.
+- **Selection per round:** up to 2 slots from the top-ranked brains, the rest
+  from the brains with the fewest games.
+- **Dead brains** keep their row (lineage and stats) but their weights are
+  blanked to `{}` unless a snapshot references them, so the file stays small.
+- **Rounds** are also reported when the player dies (surviving bots get
+  `age = roundTime`). The next population is prefetched as soon as a round
+  starts, so there is normally no loading pause.
+- **Rate limits:** 60 populations and 40 reports per IP per 5 minutes,
+  1500 reports per day. Rounds older than 2 days are purged.
+- **Service worker:** `sw.js` is now a self-unregistering worker that deletes
+  only the `aimAndShoot-v1` cache, for any visitor who still has the 2019 one.
+- **HUD overlap:** the HUD fades while a player is under it.
