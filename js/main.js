@@ -402,7 +402,7 @@ const endRound = function(){
 
 	round += 1;
 
-	player.health = Math.min(10, player.health + player.health * 0.15)
+	player.health = 10;
 
 	nextPopulation(false).then( beginRound );
 
@@ -440,6 +440,26 @@ const gameover = function(){
 
 	shared.report(enemies, totalTime);
 
+	const reached = round, generation = shared.online && shared.generation;
+
+	let best = 0;
+
+	try {
+
+		best = Number(localStorage.getItem('aimAndShoot.bestRound')) || 0;
+
+		if( reached > best )
+
+			localStorage.setItem('aimAndShoot.bestRound', reached);
+
+	} catch(e) {}
+
+	const score = "You reached round " + reached +
+
+		(generation ? " against generation " + generation.toLocaleString() : "") + ".";
+
+	const record = reached > best ? (best ? "New personal best!" : "") : "Your best: round " + best + ".";
+
 	round = 1;
 
 	let i = 0;
@@ -455,6 +475,10 @@ const gameover = function(){
 		c.fillText("You have failed the human race.", w2, h2-25);
 
 		c.fillText("You should move to mars or something.", w2, h2+25);
+
+		c.fillText(score, w2, h2+100);
+
+		c.fillText(record, w2, h2+140);
 
 		if( i <= 1 ){
 
@@ -522,6 +546,12 @@ const addEventsListener = function(){
 			case 83 :
 
 					player.isMoving.down = true;
+
+				break;
+
+			case 77 :
+
+					setMuted( !aPlayer.muted );
 
 				break;
 		}
@@ -656,6 +686,26 @@ if( canLockLandscape ){
 aPlayer = document.createElement('audio');
 
 aPlayer.src = "sounds/shoot.mp3";
+
+aPlayer.volume = 0.3;
+
+const setMuted = function(muted){
+
+	aPlayer.muted = muted;
+
+	try {
+
+		localStorage.setItem('aimAndShoot.muted', muted ? '1' : '');
+
+	} catch(e) {}
+
+}
+
+try {
+
+	aPlayer.muted = !!localStorage.getItem('aimAndShoot.muted');
+
+} catch(e) {}
 
 artwork = new Image();
 

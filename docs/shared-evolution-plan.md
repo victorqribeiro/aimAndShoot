@@ -80,7 +80,7 @@ small issue: in phone landscape the HUD can overlap a bot in the top-left.
   wall         = selfInjury / 40
   fitness      = survival*0.02 + accuracy*0.55 - friendly*0.08
                  - wall*0.12 - min(1, misses/50)*0.1
-  fitness     *= move / 100
+  fitness     *= min(1, move / 100)   # capped since 2026-10-08, see notes
   fitness      = max(0, fitness)
   ```
 
@@ -271,3 +271,10 @@ damage of faked stats and smooths out the noise of one lucky round.
 - **Service worker:** `sw.js` is now a self-unregistering worker that deletes
   only the `aimAndShoot-v1` cache, for any visitor who still has the 2019 one.
 - **HUD overlap:** the HUD fades while a player is under it.
+- **From the 2019 HN thread** (item 21353123), applied before relaunch:
+  full health every round, a game-over line with the round reached and the
+  player's best (in `localStorage`), gunshot volume 0.3 with **M** to mute,
+  and the `move` multiplier capped at 1. Uncapped, a bot that lived longer
+  moved longer and scored higher, so the order players killed bots in
+  ("domestication": kill the shooters first) drove selection. The database
+  was reset after this change so no scores mix the two formulas.
