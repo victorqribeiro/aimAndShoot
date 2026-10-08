@@ -57,6 +57,3 @@ The live version is no longer the 2019 original. In 2026 the game was fixed and 
 - **Fairer gameplay.** Limited fire rate, a short grace period at the start of each round, the same movement speed at any screen refresh rate, a fixed-size arena that scales to fit the screen, and collision fixes.
 
 The backend is PHP with SQLite (`api/`). See [docs/shared-evolution-plan.md](docs/shared-evolution-plan.md) for how it works. The GitHub Pages link now redirects to the live version.
-
-------
-[![donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=76N3LUCQ9FENS&currency_code=BRL&source=url)
