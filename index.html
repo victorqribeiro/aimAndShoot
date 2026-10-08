@@ -5,7 +5,7 @@
 	<meta name="theme-color" content="#FFF"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
 	<meta name="mobile-web-app-capable" content="yes">
-	<meta property="og:url" content="https://victorribeiro.com/aimAndShoot" />
+	<meta property="og:url" content="https://victorribeiro.com/aimAndShoot/" />
 	<meta property="og:type" content="Game" />
 	<meta property="og:title" content="Aim and Shoot" />
 	<meta property="og:author" content="Victor Ribeiro" />
@@ -14,6 +14,12 @@
 	<meta property="og:image:width" content="512" />
 	<meta property="og:image:height" content="512" />
 	<title> Aim and Shoot </title>
+	<link rel="canonical" href="https://victorribeiro.com/aimAndShoot/" />
+	<script>
+		// GitHub Pages is retired: the game and its shared evolution API live on victorribeiro.com
+		if( location.hostname.endsWith('github.io') )
+			location.replace('https://victorribeiro.com/aimAndShoot/');
+	</script>
 	<link rel="manifest" href="manifest.json" />
 	<link rel="stylesheet" href="css/main.css" />
 	<link rel="icon" href="favicon.png" sizes="256x256"/>
@@ -27,6 +33,7 @@
 	<script src="js/Matrix.js"></script>
 	<script src="js/Dejavu.js"></script>
 	<script src="js/Genetics.js"></script>
+	<script src="js/Shared.js"></script>
 	<script src="js/GuiControls.js"></script>
 	<script src="js/main.js"></script>
 </body>
