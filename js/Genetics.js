@@ -114,7 +114,7 @@ class Genetics {
 			
 			const friendlyFire = this.divide(this.population[i].friendlyFire, this.population[i].shootsFired);
 			
-			const selfInjury = this.divide(this.population[i].selfInjury, 40);
+			const selfInjury = this.population[i].selfInjury / WALL_MS;
 			
 			this.population[i].fitness += survial * 0.02;
 			
@@ -126,7 +126,7 @@ class Genetics {
 			
 			this.population[i].fitness -= Math.min(1, misses / 50) * 0.1;
 			
-			this.population[i].fitness *= (this.population[i].move / 100);
+			this.population[i].fitness *= (this.population[i].move / MOVE_MS);
 			
 			this.population[i].fitness = Math.max(0, this.population[i].fitness);
 		
