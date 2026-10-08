@@ -20,15 +20,17 @@ run(function () {
 	$pdo->prepare('INSERT INTO rounds (token, brain_ids, ip_hash, issued_at) VALUES (?, ?, ?, ?)')
 		->execute([$token, json_encode($ids), $ip, $now]);
 	$generation = (int)get_meta('global_generation');
-	$pdo->exec('COMMIT');
-
+	// read inside the transaction: breeding blanks the weights of culled brains
 	$in = implode(',', array_fill(0, count($ids), '?'));
 	$st = $pdo->prepare("SELECT id, color, weights FROM brains WHERE id IN ($in)");
 	$st->execute($ids);
+	$rows = $st->fetchAll();
+	$pdo->exec('COMMIT');
+
 	$brains = array_map(fn($b) => [
 		'id' => (int)$b['id'],
 		'color' => json_decode($b['color']),
 		'weights' => json_decode($b['weights']),
-	], $st->fetchAll());
+	], $rows);
 	respond(200, ['token' => $token, 'generation' => $generation, 'brains' => $brains]);
 });
