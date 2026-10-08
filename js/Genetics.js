@@ -126,7 +126,7 @@ class Genetics {
 			
 			this.population[i].fitness -= Math.min(1, misses / 50) * 0.1;
 			
-			this.population[i].fitness *= (this.population[i].move / MOVE_MS);
+			this.population[i].fitness *= Math.min(1, this.population[i].move / MOVE_MS);
 			
 			this.population[i].fitness = Math.max(0, this.population[i].fitness);
 		
