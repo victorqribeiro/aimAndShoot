@@ -4,7 +4,7 @@
 
 You're Nole Ksum (the k is silent), a citizen concern about the uprising of the machine who decided to take matters into your own hands and put an end to all artificial intelligence. You must kill all the evil robots controlled by Neural Networks and stop them from evolving into more dangerous beings. The entire human race counts on you, don't let them down.
 
-Play it [here](https://victorribeiro.com/aimAndShoot) | Alternative link [here](https://victorqribeiro.github.io/aimAndShoot/)
+Play it [here](https://victorribeiro.com/aimAndShoot/)
 
 ## How To Play
 
@@ -48,5 +48,12 @@ This goes on forever, until the player dies (which will happen eventually, so No
 
 *Fun Fact: the artwork was created using my [PaintDraw](https://github.com/victorqribeiro/paintDraw) tool.*
 
-------
-[![donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=76N3LUCQ9FENS&currency_code=BRL&source=url)
+## 2026 Update: fixed and extended with Claude Code
+
+The live version is no longer the 2019 original. In 2026 the game was fixed and extended with [Claude Code](https://claude.com/claude-code):
+
+- **The bots can actually learn now.** Several bugs in the neuroevolution were fixed: each bot sees every player plus its own state, the aim works, the fitness no longer rewards spraying bullets, and the best bot of each generation is kept.
+- **Shared evolution.** The bots are no longer reset when you die. They come from one population kept on the server and evolved by everyone who played before you. Your browser only reports how each bot did in the round; the server scores the bots and breeds the next generations. The HUD shows the shared generation and your round. If the server can't be reached, the game falls back to evolving the bots locally, as before.
+- **Fairer gameplay.** Limited fire rate, a short grace period at the start of each round, the same movement speed at any screen refresh rate, a fixed-size arena that scales to fit the screen, and collision fixes.
+
+The backend is PHP with SQLite (`api/`). See [docs/shared-evolution-plan.md](docs/shared-evolution-plan.md) for how it works. The GitHub Pages link now redirects to the live version.

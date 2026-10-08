@@ -18,17 +18,73 @@ class Genetics {
 	
 	}
 
+	createBrain(){
+	
+		return new Dejavu([4 + 6 * maxEnemies, 6, 7], 0.1, 100);
+		
+	}
+
+
+	copyBrain(brain){
+	
+		const copy = this.createBrain();
+		
+		for(let i = 0; i < brain.layers.length; i++){
+		
+			copy.layers[i].weights = brain.layers[i].weights.copy();
+			
+			copy.layers[i].bias = brain.layers[i].bias.copy();
+			
+		}
+		
+		return copy;
+		
+	}
+
+
+	spawnPosition(){
+	
+		const margin = 60, minDistance = 200;
+		
+		let x, y;
+		
+		for(let tries = 0; tries < 50; tries++){
+		
+			x = margin + Math.random() * (w - margin * 2);
+			
+			y = margin + Math.random() * (h - margin * 2);
+			
+			if( !player || Math.sqrt( (x - player.pos.x)**2 + (y - player.pos.y)**2 ) > minDistance )
+			
+				break;
+				
+		}
+		
+		return { x, y };
+		
+	}
+
+
+	createEnemy(color, brain){
+	
+		const pos = this.spawnPosition();
+	
+		const enemy = new Player(pos.x, pos.y, Math.random() * TWOPI, color || this.getRandomColor(), true);
+		
+		enemy.brain = brain || this.createBrain();
+		
+		return enemy;
+		
+	}
+
+
 	createPopulation(){
 	
 		this.population = [];
 			
 		for(let i = 0; i < maxEnemies; i++){
 			
-			const enemy = new Player(Math.random() * w, Math.random() * h, Math.random() * TWOPI, this.getRandomColor(), true);
-			
-			enemy.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
-		
-			this.population.push( enemy );
+			this.population.push( this.createEnemy() );
 			
 		}
 		
@@ -48,27 +104,17 @@ class Genetics {
 
 	evaluate(){
 	
-		let totalBulletsFired = player.shootsFired;
-		
 		for(let i = 0; i < this.population.length; i++){
 		
-			totalBulletsFired += this.population[i].shootsFired;
-			
-		}
-		
-		for(let i = 0; i < this.population.length; i++){
-		
-			const agressive =  this.divide(this.population[i].shootsFired, totalBulletsFired);
-			
 			const survial = this.divide(this.population[i].age, totalTime);
 			
-			const hits = this.divide(this.population[i].hits, this.population[i].shootsFired);
+			const hits = this.population[i].hits / (this.population[i].shootsFired + 5);
+			
+			const misses = this.population[i].shootsFired - this.population[i].hits - this.population[i].friendlyFire;
 			
 			const friendlyFire = this.divide(this.population[i].friendlyFire, this.population[i].shootsFired);
 			
-			const selfInjury = this.divide(this.population[i].selfInjury, 40);
-			
-			this.population[i].fitness += agressive * 0.23;
+			const selfInjury = this.population[i].selfInjury / WALL_MS;
 			
 			this.population[i].fitness += survial * 0.02;
 			
@@ -78,7 +124,9 @@ class Genetics {
 			
 			this.population[i].fitness -= selfInjury * 0.12;
 			
-			this.population[i].fitness *= (this.population[i].move / 100);
+			this.population[i].fitness -= Math.min(1, misses / 50) * 0.1;
+			
+			this.population[i].fitness *= (this.population[i].move / MOVE_MS);
 			
 			this.population[i].fitness = Math.max(0, this.population[i].fitness);
 		
@@ -118,21 +166,13 @@ class Genetics {
 
 	crossOver(a, b){
 		
-		if( !a ){
+		if( !a )
 		
-			a = new Player( Math.random() * w, Math.random() * h, Math.random() * TWOPI, this.getRandomColor(), true);
-			
-			a.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
-			
-		}
+			a = this.createEnemy();
 		
-		if( !b ){
+		if( !b )
 		
-			b = new Player( Math.random() * w, Math.random() * h, Math.random() * TWOPI, this.getRandomColor(), true);
-			
-			b.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
-			
-		}
+			b = this.createEnemy();
 		
 	
 		const color = Array(3);
@@ -149,9 +189,7 @@ class Genetics {
 			
 		}
 	
-		const child = new Player( Math.random() * w, Math.random() * h, Math.random() * TWOPI, color, true);
-		
-		child.brain = new Dejavu([6 * maxEnemies, 6, 7], 0.1, 100);
+		const child = this.createEnemy( color );
 		
 		for(let i = 0; i < child.brain.layers.length; i++){
 		
@@ -188,20 +226,26 @@ class Genetics {
 
 	mutate(child){
 		
-		for(let i = 0, end = Math.floor( Math.random() * 3); i < end; i++){
-		
+		if( Math.random() < 0.25 )
+
 			child.color[ Math.floor( Math.random() * 3) ] = Math.floor( Math.random() * 256 );
-			
-		}
 		
-		const what = Math.random() > 0.5 ? 'bias' : 'weights';
+		const rate = 0.1, strength = 0.5;
 		
 		for(let i = 0; i < child.brain.layers.length; i++){
 		
-			for(let j = 0; j < child.brain.layers[i][what].data.length; j += 2){
-					
-				child.brain.layers[i][what].data[j] = Math.random() * 2 - 1;
+			for(const what of ['weights', 'bias']){
 			
+				const genes = child.brain.layers[i][what].data;
+		
+				for(let j = 0; j < genes.length; j++){
+				
+					if( Math.random() < rate )
+					
+						genes[j] += (Math.random() * 2 - 1) * strength;
+			
+				}
+				
 			}
 		
 		}
@@ -215,25 +259,23 @@ class Genetics {
 		
 		this.evaluate();
 	
-		let newPopulation = [];
+		const newPopulation = [];
 		
-		for(let x = 0; x < this.population.length; x++){
+		const best = this.population.reduce( (a, b) => b.fitness > a.fitness ? b : a );
+		
+		if( best.fitness > 0 )
+		
+			newPopulation.push( this.createEnemy( best.color.slice(), this.copyBrain( best.brain ) ) );
+		
+		while( newPopulation.length < this.population.length ){
 		
 			this.populationTmp = this.population.slice();
 			
-			let a = this.selectParent();
+			const a = this.selectParent();
 			
-			let b = this.selectParent();
+			const b = this.selectParent();
 			
-			let child = this.crossOver(a,b);
-			
-			if( Math.random() < 0.25 ){
-			
-				child = this.mutate(child);
-				
-			}
-			
-			newPopulation.push( child );
+			newPopulation.push( this.mutate( this.crossOver(a, b) ) );
 			
 		}
 		
