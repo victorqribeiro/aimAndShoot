@@ -56,13 +56,15 @@ class Player {
 		
 		this.isDead = false;
 		
-		this.coolDownInit = 20;
+		this.coolDownInit = 10;
 		
 		this.coolDown = this.coolDownInit;
 		
-		this.spreadInit = 5;
+		this.coolDownRegen = 0.005;
 		
-		this.spread = this.spreadInit;
+		this.shotInterval = ai ? 250 : 200;
+		
+		this.shotTimer = 0;
 		
 		this.iAnim = 0;
 		
@@ -102,7 +104,7 @@ class Player {
 		
 			this.isDead = true
 			
-			this.age = (Date.now() - startTime) / 1000;
+			this.age = totalTime;
 			
 			return
 			
@@ -114,11 +116,17 @@ class Player {
 
 		this.angle = Math.atan2( this.looking.y - this.pos.y, this.looking.x - this.pos.x );
 		
+		// physics constants are tuned per 60Hz frame; scale them by elapsed time
+		
+		const frames = deltaTime / FRAME_MS;
+		
+		const accel = this.velocity * frames;
+		
 		let moved = false;
 		
 		if( this.isMoving.left ){
 		
-			this.speed.x -= this.velocity;
+			this.speed.x -= accel;
 			
 			moved = true;
 			
@@ -126,7 +134,7 @@ class Player {
 		
 		if( this.isMoving.up ){
 		
-			this.speed.y -= this.velocity;
+			this.speed.y -= accel;
 			
 			moved = true;
 			
@@ -134,7 +142,7 @@ class Player {
 			
 		if( this.isMoving.right ){
 		
-			this.speed.x += this.velocity;
+			this.speed.x += accel;
 			
 			moved = true;
 			
@@ -142,7 +150,7 @@ class Player {
 			
 		if( this.isMoving.down ){
 		
-			this.speed.y += this.velocity;
+			this.speed.y += accel;
 			
 			moved = true;
 			
@@ -154,7 +162,9 @@ class Player {
 		
 		if( moved )
 		
-			this.move += 1;
+			this.move += deltaTime;
+		
+		let hitWall = false;
 
 		if( this.pos.x + _x > this.size && this.pos.x + _x < w - this.size )	
 		
@@ -164,9 +174,7 @@ class Player {
 		
 			this.speed.x = -this.speed.x;
 			
-			this.selfInjury += 1;
-			
-			this.health -= 0.25;
+			hitWall = true;
 			
 		}
 			
@@ -178,41 +186,27 @@ class Player {
 		
 			this.speed.y = -this.speed.y
 			
-			this.selfInjury += 1;
-			
-			this.health -= 0.25;
+			hitWall = true;
 			
 		}
 		
-		this.speed.x *= this.friction;
+		if( hitWall ){
 		
-		this.speed.y *= this.friction;
-		
-		for(let i = 0; i < players.length; i++){
-		
-			if( players[i] == this || players[i].isDead )
+			this.selfInjury += deltaTime;
 			
-				continue
-			
-			if( this.distance( players[i] ) <= players[i].size + this.size ) {
-				
-				players[i].speed.x += (this.speed.x);
-				
-				players[i].speed.y += (this.speed.y);
-				
-				this.speed.x += -players[i].speed.x;
-				
-				this.speed.y += -players[i].speed.y;
-				
-				this.speed.x *= 0.005;
-				
-				this.speed.y *= 0.005;
-			
-			}
+			this.health -= 0.25 * frames;
 			
 		}
 		
-		if( this.isShooting && this.coolDown > 0 && this.spread < 1 ){
+		const friction = this.friction ** frames;
+		
+		this.speed.x *= friction;
+		
+		this.speed.y *= friction;
+		
+		const canShoot = !this.ai || totalTime >= gracePeriod;
+		
+		if( this.isShooting && canShoot && this.coolDown >= 1 && this.shotTimer <= 0 ){
 		
 		  if(aPlayer.paused)
 		  
@@ -222,7 +216,7 @@ class Player {
 		  
 		      aPlayer.currentTime = 0
 		
-			this.spread = this.spreadInit;
+			this.shotTimer = this.shotInterval;
 			
 			this.coolDown -= 1
 			
@@ -240,11 +234,11 @@ class Player {
 			
 		}
 		
-		if( this.coolDown < this.coolDownInit && !this.isShooting )
+		if( !this.isShooting )
 		
-			this.coolDown += 0.25;
+			this.coolDown = Math.min(this.coolDownInit, this.coolDown + this.coolDownRegen * deltaTime);
 		
-		this.spread -= 1;
+		this.shotTimer -= deltaTime;
 
 	}
 
@@ -256,49 +250,63 @@ class Player {
 	
 	updateAI(target){
 	
-		const data = Array( 6 * maxEnemies ).fill(0);
+		const data = Array( this.brain.layers[0].weights.cols ).fill(0);
 		
-		let t = 0, i = 0;
+		data[0] = this.pos.x / w;
 		
-		while(t < maxEnemies){
+		data[1] = this.pos.y / h;
 		
-			t++;
+		data[2] = this.health / 10;
+		
+		data[3] = this.coolDown / this.coolDownInit;
+		
+		let slot = 0;
+		
+		for(let i = 0; i < players.length && slot < maxEnemies; i++){
+		
+			const other = players[i];
 			
-			if( players[i] === this )
+			if( other === this )
+			
+				continue
+				
+			const offset = 4 + slot * 6;
+			
+			slot++;
+			
+			if( other.isDead )
 			
 				continue
 			
-			data[i*5+0] = players[i].isDead ? 0 : players[i].pos.x / w;
+			data[offset+0] = other.pos.x / w;
 		
-			data[i*5+1] = players[i].isDead ? 0 : players[i].pos.y / h;
+			data[offset+1] = other.pos.y / h;
 		
-			data[i*5+2] = players[i].isDead ? 0 : players[i].looking.x / w;
+			data[offset+2] = other.looking.x / w;
 		
-			data[i*5+3] = players[i].isDead ? 0 : players[i].looking.y / h;
+			data[offset+3] = other.looking.y / h;
 		
-			data[i*5+4] = players[i].isDead ? 0 : players[i].isShooting ? 1 : 0;
+			data[offset+4] = other.isShooting ? 1 : 0;
 			
-			data[i*5+5] = players[i].isDead ? 0 : players[i].ai ? 1 : 0;
-			
-			i++;
+			data[offset+5] = other.ai ? 1 : 0;
 			
 		}
 	
-		const action = this.brain.predict( data	).data;
+		const action = this.brain.predict( data ).data;
 		
-		action[0] > 0.5 ? this.isMoving.left = true : this.isMoving.left = false;
+		this.isMoving.left = action[0] > 0;
 			
-		action[1] > 0.5 ? this.isMoving.up = true : this.isMoving.up = false;
+		this.isMoving.up = action[1] > 0;
 			
-		action[2] > 0.5 ? this.isMoving.right = true : this.isMoving.right = false;
+		this.isMoving.right = action[2] > 0;
 		
-		action[3] > 0.5 ? this.isMoving.down = true : this.isMoving.down = false;
+		this.isMoving.down = action[3] > 0;
 		
-		this.looking.x = action[4] * w;
+		this.looking.x = (action[4] + 1) / 2 * w;
 		
-		this.looking.y = action[5] * h;
+		this.looking.y = (action[5] + 1) / 2 * h;
 		
-		action[6] > 0.5 ? this.isShooting = true : this.isShooting = false;
+		this.isShooting = action[6] > 0;
 		
 	}
 
@@ -351,6 +359,10 @@ class Player {
 			
 		}
 		
+		if( this.ai && totalTime < gracePeriod )
+		
+			c.globalAlpha = 0.3 + 0.7 * totalTime / gracePeriod;
+		
 		this.showHealthBar();
 		
 		this.showCooldownBar();
@@ -378,6 +390,8 @@ class Player {
 		c.fill();
 		
 		c.shadowBlur = 0;
+		
+		c.globalAlpha = 1;
 		
 	}
 

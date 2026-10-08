@@ -1,9 +1,4 @@
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker
-           .register('/aimAndShoot/sw.js', {scope: './'})
-           .then(response => response)
-           .catch(reason => reason);
-}
+// No service worker: sw.js only removes the old one (see sw.js).
 
 let deferredPrompt;
 const addBtn = document.createElement('button');

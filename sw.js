@@ -1,64 +1,14 @@
-const filesToCache = [
-    	'./',
-      './index.html',
-      './js/main.js',
-      './js/Matrix.js',
-      './js/Dejavu.js',
-      './js/Genetics.js',
-      './js/Player.js',
-      './js/Bullet.js',
-      './css/main.css',
-      './sounds/shoot.mp3',
-      './favicon.png',
-      './artwork.png',
-      './manifest.json'
- ];
+// The game no longer uses a service worker. Browsers that installed the old
+// one (cache-first, including API calls) pick up this version, which deletes
+// only its own cache and unregisters itself. Other apps' caches are untouched.
 
-const staticCacheName = 'aimAndShoot-v1';
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(staticCacheName)
-    .then(cache => {
-      return cache.addAll(filesToCache);
-    })
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-    .then(response => {
-      if (response) {
-        return response;
-      }
-
-      return fetch(event.request)
-
-			.then(response => {
-				return caches.open(staticCacheName).then(cache => {
-					cache.put(event.request.url, response.clone());
-					return response;
-				});
-			});
-
-    }).catch(error => {})
-  );
-});
+self.addEventListener('install', event => self.skipWaiting());
 
 self.addEventListener('activate', event => {
-
-  const cacheWhitelist = [staticCacheName];
-
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.delete('aimAndShoot-v1')
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(clients => clients.forEach(client => client.navigate(client.url)))
   );
 });
