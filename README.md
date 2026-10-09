@@ -57,4 +57,4 @@ The live version is no longer the 2019 original. In 2026 the game was fixed and 
 - **Suggestions from the [2019 Hacker News thread](https://news.ycombinator.com/item?id=21353123).** Your health refills every round, the game-over screen shows the round you reached and your best, the gunshots are quieter (press **M** to mute), bots no longer spawn on top of you, and killing the shooters first no longer breeds pacifists as easily.
 - **Fairer gameplay.** Limited fire rate, a short grace period at the start of each round, the same movement speed at any screen refresh rate, a fixed-size arena that scales to fit the screen, and collision fixes.
 
-The backend is PHP with SQLite (`api/`). See [docs/shared-evolution-plan.md](docs/shared-evolution-plan.md) for how it works. The GitHub Pages link now redirects to the live version.
+The backend is PHP with SQLite (`api/`). The GitHub Pages link now redirects to the live version.
