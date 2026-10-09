@@ -24,7 +24,10 @@ const MAX_REPORTS_PER_DAY = 1500;
 const ROUND_TTL = 2 * 86400;           // s, unreported/old rounds are purged after this
 
 function db_path() {
-	return $_SERVER['AIMANDSHOOT_DB'] ?? getenv('AIMANDSHOOT_DB') ?: '/home/sqlite3-DBs/aimAndShoot.sqlite3';
+	$path = $_SERVER['AIMANDSHOOT_DB'] ?? getenv('AIMANDSHOOT_DB');
+	if (!$path)
+		throw new RuntimeException('AIMANDSHOOT_DB is not set');
+	return $path;
 }
 
 function db() {
