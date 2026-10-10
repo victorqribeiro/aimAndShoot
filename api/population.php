@@ -15,7 +15,7 @@ run(function () {
 		$pdo->exec('ROLLBACK');
 		fail(429, 'too many requests');
 	}
-	$ids = pick_round_brains();
+	$ids = pick_round_brains($ip);
 	$token = bin2hex(random_bytes(16));
 	$pdo->prepare('INSERT INTO rounds (token, brain_ids, ip_hash, issued_at) VALUES (?, ?, ?, ?)')
 		->execute([$token, json_encode($ids), $ip, $now]);
