@@ -26,7 +26,7 @@ You've been warned.
 
 ### Objectives
 
-Kill the bots, don't get killed. Also don't touch the borders of the screen, they hurt you. But, feel free to push the bots into them.
+Kill the bots, don't get killed. Also don't touch the red border around the arena, it hurts you. But, feel free to push the bots into it.
 
 ### Status Bars
 
@@ -38,7 +38,7 @@ The green one is the cool down meter, if it's empty you can't shoot until it reg
 
 I've always wanted to take the time to make a [Neuroevolution](https://en.wikipedia.org/wiki/Neuroevolution) experiment, so I did.
 
-Each bot is controlled by it's own Neural Network (that I made a while back - [here](https://github.com/victorqribeiro/digitRecognition)). When all the bots die, the genetic algorithm evaluates their fitness score (based on how many shots they fired, how many hits the got, how many friends they shot, how much they hurt themselves and how much they moved during the round) and cross the ones with the highest scores.
+Each bot is controlled by it's own Neural Network (that I made a while back - [here](https://github.com/victorqribeiro/digitRecognition)). When all the bots die, the genetic algorithm evaluates their fitness score (based on how many hits the got, how many shots they missed, how many friends they shot, how much they hurt themselves and how much they moved during the round) and cross the ones with the highest scores.
 
 
 
