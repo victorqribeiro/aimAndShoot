@@ -75,9 +75,8 @@ run(function () {
 		$reject(422, 'implausible stats');
 
 	$pdo->prepare('UPDATE rounds SET reported_at = ? WHERE token = ?')->execute([$now, $round['token']]);
-	$add = $pdo->prepare('UPDATE brains SET games = games + 1, fitness_sum = fitness_sum + ? WHERE id = ? AND alive = 1');
 	foreach ($body['stats'] as $s)
-		$add->execute([fitness($s, $body['roundTime']), $s['id']]);
+		record_game($s['id'], $ip, fitness($s, $body['roundTime']));
 	maybe_breed();
 	$pdo->prepare('DELETE FROM rounds WHERE issued_at < ?')->execute([$now - ROUND_TTL]);
 	$generation = (int)get_meta('global_generation');

@@ -7,6 +7,8 @@ const POOL_SIZE = 50;                  // live brains
 const ROUND_SIZE = 7;                  // bots per round
 const TOP_SLOTS = 2;                   // of those, picked among the best ranked
 const MIN_GAMES = 3;                   // games before a brain is ranked
+const MIN_PLAYERS = 2;                 // ...reported by at least this many players (ip_hash)
+const MAX_GAMES_PER_PLAYER = 2;        // games one player can add to one brain
 const CULL = 12;                       // brains replaced per generation (~quarter)
 const SNAPSHOT_SIZE = 7;
 
@@ -22,6 +24,10 @@ const MAX_ISSUED_PER_WINDOW = 60;
 const MAX_REPORTS_PER_WINDOW = 40;
 const MAX_REPORTS_PER_DAY = 1500;
 const ROUND_TTL = 2 * 86400;           // s, unreported/old rounds are purged after this
+const SCHEMA_VERSION = 2;              // PRAGMA user_version
+
+// SQL: brain b has enough games from enough players to be ranked
+const RANKED_SQL = '(b.games >= ' . MIN_GAMES . ' AND (SELECT COUNT(*) FROM brain_games g WHERE g.brain_id = b.id) >= ' . MIN_PLAYERS . ')';
 
 function db_path() {
 	$path = $_SERVER['AIMANDSHOOT_DB'] ?? getenv('AIMANDSHOOT_DB');
@@ -41,60 +47,87 @@ function db() {
 	$pdo->exec('PRAGMA busy_timeout = 5000');
 	$pdo->exec('PRAGMA journal_mode = WAL');
 	$pdo->exec('PRAGMA synchronous = NORMAL');
-	if ((int)$pdo->query('PRAGMA user_version')->fetchColumn() === 0)
-		init_db($pdo);
+	if ((int)$pdo->query('PRAGMA user_version')->fetchColumn() < SCHEMA_VERSION)
+		migrate_db($pdo);
 	return $pdo;
 }
 
-function init_db($pdo) {
+// Creates the database, or brings an older one up to SCHEMA_VERSION.
+function migrate_db($pdo) {
 	$pdo->exec('BEGIN IMMEDIATE');
 	try {
-		// another request may have initialised it while we waited for the lock
-		if ((int)$pdo->query('PRAGMA user_version')->fetchColumn() !== 0) {
-			$pdo->exec('COMMIT');
-			return;
-		}
-		$pdo->exec('
-			CREATE TABLE brains (
-				id          INTEGER PRIMARY KEY,
-				generation  INTEGER NOT NULL,
-				parent_a    INTEGER,
-				parent_b    INTEGER,
-				color       TEXT    NOT NULL,
-				weights     TEXT    NOT NULL,
-				games       INTEGER NOT NULL DEFAULT 0,
-				fitness_sum REAL    NOT NULL DEFAULT 0,
-				alive       INTEGER NOT NULL DEFAULT 1,
-				created_at  INTEGER NOT NULL
-			);
-			CREATE INDEX brains_alive ON brains(alive, games);
-			CREATE TABLE rounds (
-				token       TEXT    PRIMARY KEY,
-				brain_ids   TEXT    NOT NULL,
-				ip_hash     TEXT    NOT NULL,
-				issued_at   INTEGER NOT NULL,
-				reported_at INTEGER
-			);
-			CREATE INDEX rounds_ip_issued ON rounds(ip_hash, issued_at);
-			CREATE INDEX rounds_ip_reported ON rounds(ip_hash, reported_at);
-			CREATE TABLE snapshots (
-				generation  INTEGER PRIMARY KEY,
-				brain_ids   TEXT    NOT NULL,
-				created_at  INTEGER NOT NULL
-			);
-			CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
-		');
-		set_meta('global_generation', 1);
-		set_meta('ip_salt', bin2hex(random_bytes(32)));
-		for ($i = 0; $i < POOL_SIZE; $i++)
-			insert_brain(1, null, null, random_color(), random_weights());
-		take_snapshot(1);
-		$pdo->exec('PRAGMA user_version = 1');
+		// another request may have migrated it while we waited for the lock
+		$version = (int)$pdo->query('PRAGMA user_version')->fetchColumn();
+		if ($version === 0)
+			init_db($pdo);
+		elseif ($version < 2)
+			add_brain_games($pdo);
+		if ($version < SCHEMA_VERSION)
+			$pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 		$pdo->exec('COMMIT');
 	} catch (Throwable $e) {
 		$pdo->exec('ROLLBACK');
 		throw $e;
 	}
+}
+
+// A new database, created with the current schema.
+function init_db($pdo) {
+	$pdo->exec('
+		CREATE TABLE brains (
+			id          INTEGER PRIMARY KEY,
+			generation  INTEGER NOT NULL,
+			parent_a    INTEGER,
+			parent_b    INTEGER,
+			color       TEXT    NOT NULL,
+			weights     TEXT    NOT NULL,
+			games       INTEGER NOT NULL DEFAULT 0,
+			fitness_sum REAL    NOT NULL DEFAULT 0,
+			alive       INTEGER NOT NULL DEFAULT 1,
+			created_at  INTEGER NOT NULL
+		);
+		CREATE INDEX brains_alive ON brains(alive, games);
+		CREATE TABLE rounds (
+			token       TEXT    PRIMARY KEY,
+			brain_ids   TEXT    NOT NULL,
+			ip_hash     TEXT    NOT NULL,
+			issued_at   INTEGER NOT NULL,
+			reported_at INTEGER
+		);
+		CREATE INDEX rounds_ip_issued ON rounds(ip_hash, issued_at);
+		CREATE INDEX rounds_ip_reported ON rounds(ip_hash, reported_at);
+		CREATE TABLE snapshots (
+			generation  INTEGER PRIMARY KEY,
+			brain_ids   TEXT    NOT NULL,
+			created_at  INTEGER NOT NULL
+		);
+		CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+	');
+	add_brain_games($pdo);
+	set_meta('global_generation', 1);
+	set_meta('ip_salt', bin2hex(random_bytes(32)));
+	for ($i = 0; $i < POOL_SIZE; $i++)
+		insert_brain(1, null, null, random_color(), random_weights());
+	take_snapshot(1);
+}
+
+// Version 2: which players reported games for each brain. Rebuilt from the
+// reported rounds still in the database (older ones were purged, so brains
+// that were already ranked may need a game from one more player).
+function add_brain_games($pdo) {
+	$pdo->exec('
+		CREATE TABLE brain_games (
+			brain_id    INTEGER NOT NULL,
+			ip_hash     TEXT    NOT NULL,
+			games       INTEGER NOT NULL,
+			PRIMARY KEY (brain_id, ip_hash)
+		) WITHOUT ROWID;
+		INSERT INTO brain_games (brain_id, ip_hash, games)
+			SELECT b.id, r.ip_hash, COUNT(*) FROM rounds r, json_each(r.brain_ids) j
+			JOIN brains b ON b.id = j.value AND b.alive = 1
+			WHERE r.reported_at IS NOT NULL
+			GROUP BY b.id, r.ip_hash;
+	');
 }
 
 function get_meta($key) {
@@ -161,11 +194,16 @@ function fitness($s, $roundTime) {
 
 // ---- selection -------------------------------------------------------------
 
-// Mostly brains that still need games, plus a couple of the best ranked ones.
-function pick_round_brains() {
-	$alive = db()->query('SELECT id, games, fitness_sum FROM brains WHERE alive = 1')->fetchAll();
+// Mostly brains that still need games from this player, plus a couple of the
+// best ranked ones.
+function pick_round_brains($ip) {
+	$st = db()->prepare('SELECT b.id, b.games, b.fitness_sum, ' . RANKED_SQL . ' AS ranked,
+		(SELECT g.games FROM brain_games g WHERE g.brain_id = b.id AND g.ip_hash = ?) AS mine
+		FROM brains b WHERE b.alive = 1');
+	$st->execute([$ip]);
+	$alive = $st->fetchAll();
 	shuffle($alive);
-	$ranked = array_values(array_filter($alive, fn($b) => $b['games'] >= MIN_GAMES));
+	$ranked = array_values(array_filter($alive, fn($b) => $b['ranked']));
 	usort($ranked, fn($a, $b) => $b['fitness_sum'] / $b['games'] <=> $a['fitness_sum'] / $a['games']);
 	$picked = [];
 	foreach (array_slice($ranked, 0, TOP_SLOTS * 3) as $b) {
@@ -174,7 +212,10 @@ function pick_round_brains() {
 		if (rnd() < 0.6)
 			$picked[$b['id']] = true;
 	}
-	usort($alive, fn($a, $b) => $a['games'] <=> $b['games']);   // stable: ties stay shuffled
+	// unranked brains first, then the ones this player has played least, then
+	// fewest games; brains where this player's games no longer count go last
+	$key = fn($b) => [(int)$b['mine'] >= MAX_GAMES_PER_PLAYER, (int)$b['ranked'], (int)$b['mine'], (int)$b['games']];
+	usort($alive, fn($a, $b) => $key($a) <=> $key($b));   // stable: ties stay shuffled
 	foreach ($alive as $b) {
 		if (count($picked) >= ROUND_SIZE)
 			break;
@@ -183,6 +224,18 @@ function pick_round_brains() {
 	$ids = array_keys($picked);
 	shuffle($ids);
 	return $ids;
+}
+
+// Adds a reported game to a brain, unless the brain is gone or this player
+// already added MAX_GAMES_PER_PLAYER games to it.
+function record_game($brainId, $ip, $fitness) {
+	$count = db()->prepare('INSERT INTO brain_games (brain_id, ip_hash, games)
+		SELECT id, ?, 1 FROM brains WHERE id = ? AND alive = 1
+		ON CONFLICT (brain_id, ip_hash) DO UPDATE SET games = games + 1 WHERE games < ' . MAX_GAMES_PER_PLAYER);
+	$count->execute([$ip, $brainId]);
+	if ($count->rowCount() > 0)
+		db()->prepare('UPDATE brains SET games = games + 1, fitness_sum = fitness_sum + ? WHERE id = ?')
+			->execute([$fitness, $brainId]);
 }
 
 // ---- breeding (same operators as Genetics.crossOver / mutate) --------------
@@ -233,10 +286,11 @@ function select_parent(&$pool) {
 	return array_pop($pool);
 }
 
-// Breeds one generation once every live brain has been ranked.
+// Breeds one generation once every live brain has been ranked (MIN_GAMES games
+// from at least MIN_PLAYERS players), so one player can't evolve the pool alone.
 // Call inside a write transaction. Returns true if a generation was bred.
 function maybe_breed() {
-	$pending = (int)db()->query('SELECT COUNT(*) FROM brains WHERE alive = 1 AND games < ' . MIN_GAMES)->fetchColumn();
+	$pending = (int)db()->query('SELECT COUNT(*) FROM brains b WHERE b.alive = 1 AND NOT ' . RANKED_SQL)->fetchColumn();
 	if ($pending > 0)
 		return false;
 	$ranked = db()->query('SELECT id, color, weights, games, fitness_sum FROM brains WHERE alive = 1')->fetchAll();
@@ -255,6 +309,7 @@ function maybe_breed() {
 	$kill = db()->prepare('UPDATE brains SET alive = 0 WHERE id = ?');
 	foreach ($culled as $b)
 		$kill->execute([$b['id']]);
+	db()->exec('DELETE FROM brain_games WHERE brain_id NOT IN (SELECT id FROM brains WHERE alive = 1)');
 	for ($i = 0; $i < CULL; $i++) {
 		$pool = $survivors;
 		$a = select_parent($pool);
@@ -281,8 +336,8 @@ function is_milestone($generation) {
 
 // Top brains by average fitness (unranked brains last).
 function take_snapshot($generation) {
-	$ids = db()->query('SELECT id FROM brains WHERE alive = 1
-		ORDER BY games >= ' . MIN_GAMES . ' DESC, fitness_sum / MAX(games, 1) DESC LIMIT ' . SNAPSHOT_SIZE)
+	$ids = db()->query('SELECT id FROM brains b WHERE alive = 1
+		ORDER BY ' . RANKED_SQL . ' DESC, fitness_sum / MAX(games, 1) DESC LIMIT ' . SNAPSHOT_SIZE)
 		->fetchAll(PDO::FETCH_COLUMN);
 	db()->prepare('INSERT OR REPLACE INTO snapshots (generation, brain_ids, created_at) VALUES (?, ?, ?)')
 		->execute([$generation, json_encode(array_map('intval', $ids)), time()]);
